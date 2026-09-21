@@ -2,7 +2,7 @@ import {ChangeEvent, FC, ReactNode, useEffect, useMemo, useRef, useState} from '
 import styles from './LoadingScreenStudio.module.scss';
 import {createBadgeLoader, loadLoadingScreenAssets} from '../loadingScreen/assets';
 import {drawLoadingScreen} from '../loadingScreen/render';
-import {encodeDds} from '../loadingScreen/dds';
+import {encodeDdsDxt5} from '../loadingScreen/dds';
 import {downloadBlob} from '../loadingScreen/download';
 import {
     ARTBOARD_HEIGHT,
@@ -136,7 +136,7 @@ const LoadingScreenStudioPage: FC = () => {
             return;
         }
         const {data} = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        downloadBlob(new Blob([encodeDds(canvas.width, canvas.height, data)], {type: 'image/vnd-ms.dds'}), 'wcmloading.dds');
+        downloadBlob(new Blob([encodeDdsDxt5(canvas.width, canvas.height, data)], {type: 'image/vnd-ms.dds'}), 'wcmloading.dds');
         setStatus('dds exported');
     };
 

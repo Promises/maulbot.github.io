@@ -29,3 +29,12 @@ test('changelog page shows a fallback link when GitHub is unavailable', async ()
     expect(screen.getByRole('heading', {name: /patch notes/i})).toBeInTheDocument();
     expect(await screen.findByText(/couldn't load the patch notes/i)).toBeInTheDocument();
 });
+
+test('loading screen studio renders its controls without the site chrome', async () => {
+    await renderAt(ROUTES.loadingScreenStudio);
+    expect(screen.getByRole('heading', {name: /loading screen studio/i})).toBeInTheDocument();
+    expect(screen.getByLabelText(/^url$/i)).toHaveValue('warcraftmaul.com');
+    expect(screen.getByRole('status')).toHaveTextContent(/loading assets|asset error/);
+    expect(screen.getByRole('button', {name: /export png/i})).toBeDisabled();
+    expect(screen.queryByRole('link', {name: /download/i})).not.toBeInTheDocument();
+});

@@ -1,0 +1,236 @@
+// The studio is a tool, not a marketing page: it keeps its own cool, neutral palette.
+$colour-page: #0b0d12;
+$colour-panel: #11151d;
+$colour-line: #222a38;
+$colour-input: #0a0e15;
+$colour-input-border: #2a3444;
+$colour-text: #dfe6f0;
+$colour-text-input: #eef3fa;
+$colour-label: #a9b6c8;
+$colour-kicker: #7d8ba1;
+$colour-hint: #6f7d92;
+$colour-heading: #f0e3c0;
+$colour-accent: #2aa4e8;
+
+$font-body: 'Spectral', Georgia, serif;
+$font-label: 'Cinzel', serif;
+$font-display: lifecraft, 'Cinzel', serif;
+
+@mixin small-caps($size, $tracking) {
+  font-family: $font-label;
+  font-size: $size;
+  letter-spacing: $tracking;
+  text-transform: uppercase;
+}
+
+.studio {
+  display: flex;
+  min-height: 100vh;
+  background: $colour-page;
+  color: $colour-text;
+  font-family: $font-body;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+.sidebar {
+  box-sizing: border-box;
+  flex: 0 0 330px;
+  width: 330px;
+  max-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 22px 20px 40px;
+  background: $colour-panel;
+  border-right: 1px solid $colour-line;
+
+  @media (max-width: 900px) {
+    flex: none;
+    width: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid $colour-line;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brandKicker {
+  @include small-caps(11px, 0.24em);
+  color: $colour-kicker;
+}
+
+.brandTitle {
+  margin: 0;
+  font-family: $font-display;
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.1;
+  color: $colour-heading;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupTitle {
+  @include small-caps(10.5px, 0.22em);
+  margin: 0;
+  padding-bottom: 6px;
+  font-weight: 400;
+  color: $colour-kicker;
+  border-bottom: 1px solid $colour-line;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: $colour-label;
+
+  input {
+    font: inherit;
+    font-size: 14px;
+    padding: 9px 11px;
+    color: $colour-text-input;
+    background: $colour-input;
+    border: 1px solid $colour-input-border;
+    border-radius: 3px;
+    outline: none;
+
+    &:focus {
+      border-color: $colour-accent;
+    }
+  }
+}
+
+.colorField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: $colour-label;
+
+  input {
+    width: 52px;
+    height: 30px;
+    padding: 2px;
+    background: $colour-input;
+    border: 1px solid $colour-input-border;
+    cursor: pointer;
+  }
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: $colour-label;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: $colour-hint;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+%exportButton {
+  @include small-caps(14px, 0.1em);
+  font-weight: 700;
+  padding: 13px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+.exportPng {
+  @extend %exportButton;
+  color: #08121c;
+  background: linear-gradient(180deg, #8fd0ff, $colour-accent);
+  border: 0;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(180deg, #a8dcff, #3fb2f2);
+  }
+}
+
+.exportDds {
+  @extend %exportButton;
+  color: $colour-heading;
+  background: #1b2231;
+  border: 1px solid #33405a;
+
+  &:hover:not(:disabled) {
+    background: #222b3e;
+  }
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 28px;
+}
+
+.stageHeader {
+  @include small-caps(11px, 0.24em);
+  width: 100%;
+  max-width: 1500px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  color: $colour-hint;
+}
+
+.artboard {
+  width: 100%;
+  max-width: 1500px;
+  border: 1px solid $colour-line;
+  background: #05070b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}

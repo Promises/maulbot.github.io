@@ -1,0 +1,20 @@
+@use '../styles/tokens' as *;
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: $colour-page;
+  background-image: $wc3-bg-panel;
+  background-repeat: repeat;
+  background-size: 280px;
+}
+
+// Cold light from above and a dark vignette at the edges.
+.haze {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(65% 45% at 50% 4%, rgba(70, 145, 200, 0.18), rgba(12, 10, 7, 0) 72%),
+    radial-gradient(120% 90% at 50% 45%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.6) 100%);
+}

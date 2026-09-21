@@ -1,0 +1,137 @@
+// Design tokens: Warcraft III UI direction — real game frames and textures, gold text.
+
+$colour-page: #0c0a07;
+$colour-edge: #0a0805;
+
+$colour-text: #e2d8c0;
+$colour-text-lede: #c3b69a;
+$colour-text-body: #c0b498;
+$colour-text-muted: #b2a68c;
+$colour-text-label: #a89b81;
+$colour-text-faint: #9a8e74;
+$colour-text-note: #9d937c;
+$colour-text-ghost: #857a63;
+$colour-name: #d6c8a8;
+
+$colour-heading: #f0e3c0;
+$colour-gold: #e8c977;
+$colour-gold-hover: #fbeec2;
+$colour-gold-dim: #b9a67e;
+$colour-gold-line: #c8a55a;
+$colour-button-text: #e7d9b4;
+$colour-brand: #e8d5a4;
+$colour-frost: #9ed2ee;
+
+$colour-archived-eyebrow: #8f8466;
+$colour-archived-name: #bdaa85;
+$colour-archived-text: #9d937c;
+
+$font-body: 'Spectral', Georgia, serif;
+$font-label: 'Cinzel', serif;
+$font-display: lifecraft, serif;
+
+$content-width: 1020px;
+$transition: 0.18s;
+
+// Warcraft III UI textures. Frames are 9-slice images with 64px corners;
+// backgrounds tile. Paths resolve relative to this file.
+$wc3-frame-button: url('../assets/wc3/undead/frame-button.png');
+$wc3-frame-button-down: url('../assets/wc3/undead/frame-button-down.png');
+$wc3-bg-button: url('../assets/wc3/undead/bg-button.png');
+$wc3-bg-button-down: url('../assets/wc3/undead/bg-button-down.png');
+$wc3-frame-panel: url('../assets/wc3/undead/frame-panel.png');
+$wc3-bg-panel: url('../assets/wc3/undead/bg-panel.png');
+$wc3-frame-inset: url('../assets/wc3/shared/frame-inset.png');
+$wc3-bg-inset: url('../assets/wc3/shared/bg-inset.png');
+$wc3-frame-disabled: url('../assets/wc3/frame-button-disabled.png');
+$wc3-bg-disabled: url('../assets/wc3/bg-button-disabled.png');
+$wc3-frame-icon: url('../assets/wc3/shared/frame-icon.png');
+$wc3-frame-icon-down: url('../assets/wc3/shared/frame-icon-down.png');
+$wc3-bg-glue: url('../assets/wc3/shared/bg-glue.png');
+$wc3-slice: 64;
+$wc3-icon-slice: 32;
+
+$breakpoint-narrow: 760px;
+
+// Cinzel small caps used for nav, eyebrows, buttons and footer.
+@mixin label($size: 11px, $tracking: 0.2em) {
+  font-family: $font-label;
+  font-weight: 600;
+  font-size: $size;
+  letter-spacing: $tracking;
+  text-transform: uppercase;
+}
+
+// A 9-slice game frame around a tiled texture. `$width` is how much of the
+// frame shows; the texture is clipped to the inside unless `$clip` is false.
+@mixin wc3-frame($frame, $background, $width, $clip: true, $slice: $wc3-slice) {
+  border: $width solid transparent;
+  border-image: $frame $slice round;
+  background-image: $background;
+  background-repeat: repeat;
+  background-origin: border-box;
+  @if $clip {
+    background-clip: padding-box;
+  }
+}
+
+@mixin wc3-panel($width) {
+  @include wc3-frame($wc3-frame-panel, $wc3-bg-panel, $width);
+}
+
+@mixin wc3-inset($width, $clip: true) {
+  @include wc3-frame($wc3-frame-inset, $wc3-bg-inset, $width, $clip);
+}
+
+@mixin wc3-disabled($width) {
+  @include wc3-frame($wc3-frame-disabled, $wc3-bg-disabled, $width);
+}
+
+// Game button: brightens on hover, swaps to the pressed frame on click.
+@mixin wc3-button($width) {
+  @include wc3-frame($wc3-frame-button, $wc3-bg-button, $width);
+  display: inline-flex;
+  align-items: center;
+  color: $colour-button-text;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  transition: filter $transition, color $transition;
+
+  &:hover {
+    filter: brightness(1.35);
+    color: $colour-gold-hover;
+  }
+
+  &:active {
+    border-image-source: $wc3-frame-button-down;
+    background-image: $wc3-bg-button-down;
+  }
+}
+
+// Thin gold rule that fades out to the right.
+@mixin gold-rule($width: 120px) {
+  display: block;
+  height: 2px;
+  width: $width;
+  background: linear-gradient(90deg, $colour-gold-line, rgba(200, 165, 90, 0));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+@mixin section-heading($size: clamp(26px, 3.6vw, 38px)) {
+  margin: 0;
+  font-family: $font-display;
+  font-size: $size;
+  color: $colour-heading;
+  text-shadow: 0 2px 0 $colour-edge;
+}
+
+@mixin section-shell($bottom: 76px) {
+  position: relative;
+  z-index: 2;
+  padding: 0 24px $bottom;
+}
+
+@mixin content-column {
+  max-width: $content-width;
+  margin: 0 auto;
+}

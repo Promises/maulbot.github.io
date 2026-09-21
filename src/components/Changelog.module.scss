@@ -1,0 +1,158 @@
+@use '../styles/tokens' as *;
+
+.section {
+  @include section-shell;
+  padding-top: 56px;
+}
+
+.inner {
+  @include content-column;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.heading {
+  @include section-heading;
+}
+
+.rule {
+  @include gold-rule;
+  flex: 1;
+  min-width: 40px;
+  width: auto;
+}
+
+.sourceLink {
+  @include label(12.5px, 0.16em);
+  @include wc3-button(16px);
+  padding: 2px 14px;
+}
+
+.text {
+  margin: 0;
+  max-width: 700px;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: $colour-text-body;
+  text-wrap: pretty;
+}
+
+.status {
+  @include label(12px, 0.14em);
+  margin: 0;
+  line-height: 1.8;
+  color: $colour-text-faint;
+}
+
+.list {
+  @include wc3-panel(26px);
+  display: flex;
+  flex-direction: column;
+  padding: 0 clamp(10px, 2vw, 22px);
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 24px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -1px 0 rgba(200, 165, 90, 0.14);
+
+  &:first-child {
+    border-top: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+.version {
+  @include label(14px, normal);
+  @include wc3-inset(12px);
+  text-transform: none;
+  align-self: start;
+  justify-self: start;
+  padding: 5px 10px;
+  color: $colour-gold;
+  transition: filter $transition;
+
+  &:hover {
+    color: $colour-gold-hover;
+    filter: brightness(1.25);
+  }
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupTitle {
+  @include label;
+  color: $colour-text-faint;
+}
+
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: $colour-text-muted;
+
+  li {
+    position: relative;
+    padding-left: 18px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.75em;
+      width: 6px;
+      height: 6px;
+      background: $colour-gold-line;
+      transform: rotate(45deg) scale(0.7);
+      box-shadow: 0 0 6px rgba(200, 165, 90, 0.5);
+    }
+  }
+}
+
+.more {
+  @include label(12.5px, 0.16em);
+  @include wc3-button(16px);
+  align-self: flex-start;
+  padding: 2px 14px;
+  font-family: $font-label;
+
+  &:disabled {
+    cursor: default;
+    filter: none;
+    color: $colour-text-faint;
+    border-image-source: $wc3-frame-disabled;
+    background-image: $wc3-bg-disabled;
+  }
+}

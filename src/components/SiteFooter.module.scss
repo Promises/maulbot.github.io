@@ -1,0 +1,35 @@
+@use '../styles/tokens' as *;
+
+.footer {
+  @include content-column;
+  @include label(11.5px, 0.16em);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 28px 28px;
+  color: $colour-text-ghost;
+}
+
+.murloc {
+  height: 46px;
+  width: auto;
+  opacity: 0.85;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  a {
+    color: $colour-gold-dim;
+
+    &:hover {
+      color: $colour-gold-hover;
+    }
+  }
+}

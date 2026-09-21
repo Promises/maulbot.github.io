@@ -1,10 +1,7 @@
 import {FC} from 'react';
-import styles from './discord-button.module.scss'
+import styles from './DiscordButton.module.scss';
 
-interface DiscordButtonProps {
-}
-
-const DiscordButton: FC<DiscordButtonProps> = (props) => {
+const DiscordButton: FC = () => {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 875 280" className={styles.discordSVG}>
             <rect className={styles.bg} width="875" height="280" rx="19"/>
@@ -14,6 +11,4 @@ const DiscordButton: FC<DiscordButtonProps> = (props) => {
     );
 }
 
-export default DiscordButton
-
-
+export default DiscordButton;

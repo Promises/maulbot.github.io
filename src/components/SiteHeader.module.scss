@@ -1,0 +1,103 @@
+@use '../styles/tokens' as *;
+
+.header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 16px 26px;
+  background-image: $wc3-bg-button;
+  background-repeat: repeat;
+  border-bottom: 3px solid $colour-edge;
+  box-shadow: inset 0 -1px 0 rgba(216, 180, 90, 0.35), 0 8px 22px rgba(0, 0, 0, 0.65);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: $colour-brand;
+
+  &:hover {
+    color: $colour-gold-hover;
+  }
+}
+
+.crest {
+  height: 34px;
+  width: auto;
+  filter: drop-shadow(0 0 7px rgba(110, 190, 255, 0.4));
+}
+
+.brandName {
+  font-family: $font-display;
+  font-size: 23px;
+  text-shadow: 0 2px 0 #000;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  a {
+    @include label(12.5px, 0.1em);
+    @include wc3-button(14px);
+    padding: 0 10px;
+    min-height: 16px;
+  }
+}
+
+// Mobile: hamburger in an icon frame, opening a panel of stacked buttons.
+.menuButton {
+  @include wc3-frame($wc3-frame-icon, $wc3-bg-glue, 10px, $slice: $wc3-icon-slice);
+  box-sizing: border-box;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  cursor: pointer;
+  transition: filter $transition;
+
+  &:hover {
+    filter: brightness(1.35);
+  }
+
+  &:active {
+    border-image-source: $wc3-frame-icon-down;
+  }
+}
+
+.menuBar {
+  display: block;
+  width: 22px;
+  height: 3px;
+  background: #e0cb95;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.menu {
+  @include wc3-panel(22px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px;
+
+  a {
+    @include label(14px, 0.12em);
+    @include wc3-button(14px);
+    display: flex;
+    justify-content: center;
+    padding: 0 14px;
+    min-height: 22px;
+  }
+}

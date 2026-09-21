@@ -1,0 +1,71 @@
+@use '../styles/tokens' as *;
+
+.section {
+  @include section-shell(34px);
+}
+
+.inner {
+  @include content-column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(245px, 100%), 1fr));
+  gap: 30px;
+  align-items: start;
+  padding-top: 32px;
+  border-top: 2px solid rgba(200, 165, 90, 0.28);
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.columnTight {
+  @extend .column;
+}
+
+.eyebrow {
+  @include label;
+  color: $colour-text-faint;
+}
+
+.people {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+
+.person {
+  color: $colour-name;
+
+  &:hover {
+    color: $colour-gold-hover;
+  }
+}
+
+.tag {
+  color: $colour-text-ghost;
+}
+
+.note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: $colour-text-note;
+
+  a {
+    color: $colour-gold-dim;
+
+    &:hover {
+      color: $colour-gold-hover;
+    }
+  }
+}
+
+.finePrint {
+  font-size: 15px;
+  line-height: 1.7;
+  color: $colour-text-note;
+}

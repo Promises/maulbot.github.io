@@ -1,0 +1,184 @@
+@use '../styles/tokens' as *;
+
+.hero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 22px;
+  padding: 64px 24px 80px;
+}
+
+.crestWrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.crestGlow {
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(85, 165, 230, 0.26), rgba(12, 10, 7, 0) 66%);
+  animation: frostdrift 9s ease-in-out infinite;
+}
+
+.crest {
+  position: relative;
+  width: min(230px, 52vw);
+  height: auto;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 20px rgba(95, 180, 255, 0.32));
+}
+
+.title {
+  margin: 0;
+  font-family: $font-display;
+  font-size: clamp(46px, 9vw, 104px);
+  line-height: 0.94;
+  color: $colour-heading;
+  text-shadow: 0 0 30px rgba(85, 170, 235, 0.45), 0 3px 0 #1a1208, 0 6px 14px rgba(0, 0, 0, 0.8);
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.rule {
+  height: 2px;
+  width: clamp(28px, 10vw, 110px);
+  background: linear-gradient(90deg, rgba(200, 165, 90, 0), $colour-gold-line);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+
+  &:last-child {
+    background: linear-gradient(90deg, $colour-gold-line, rgba(200, 165, 90, 0));
+  }
+}
+
+.diamond {
+  width: 9px;
+  height: 9px;
+  background: $colour-gold-line;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(200, 165, 90, 0.7);
+}
+
+.subtitleText {
+  @include label(clamp(13px, 2.4vw, 18px), 0.38em);
+  color: $colour-frost;
+  text-shadow: 0 0 14px rgba(95, 180, 255, 0.5), 0 2px 0 #000;
+}
+
+.lede {
+  max-width: 640px;
+  margin: 6px 0 0;
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.7;
+  color: $colour-text-lede;
+  text-wrap: pretty;
+}
+
+// Download button with the patch-notes button stacked beneath it.
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.download {
+  @include wc3-button(22px);
+  display: flex;
+  gap: 18px;
+  padding: 6px 20px;
+  color: #f3e6c2;
+  text-shadow: none;
+
+  &:hover {
+    color: #f3e6c2;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.downloadText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.downloadTitle {
+  font-family: $font-display;
+  font-size: 26px;
+  color: #f6e9c4;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+}
+
+.downloadHint {
+  @include label(11.5px, 0.14em);
+  font-weight: 400;
+  color: #c9b98f;
+}
+
+.version {
+  @include label(14px, normal);
+  @include wc3-inset(12px);
+  text-transform: none;
+  padding: 5px 10px;
+  color: $colour-gold;
+}
+
+.patchNotes {
+  @include label(12.5px, 0.16em);
+  @include wc3-button(18px);
+  display: flex;
+  padding: 4px 16px;
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.stats {
+  @include wc3-inset(14px, $clip: false);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 10px 20px;
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 1px 0 0 rgba(200, 165, 90, 0.14);
+
+  &:last-child {
+    border-right: none;
+    box-shadow: none;
+  }
+}
+
+.statValue {
+  font-family: $font-display;
+  font-size: 22px;
+  color: $colour-gold;
+}
+
+.statLabel {
+  @include label(11.5px, 0.16em);
+  color: $colour-text-label;
+}

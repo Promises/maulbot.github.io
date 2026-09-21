@@ -1,128 +1,41 @@
+@use './styles/tokens' as *;
+
+@font-face {
+  font-family: lifecraft;
+  font-style: normal;
+  font-weight: 400;
+  src: local('LifeCraft_Font'), url('./fonts/LifeCraft_Font.ttf') format('truetype');
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  background: $colour-page;
+  color: $colour-text;
+  font-family: $font-body;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #303030;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-$colour-red: #F86B4F;
-$colour-light-red: #FC9782;
-$colour-pink: #FFC2B5;
-$colour-orange: #FFC587;
-$colour-yellow: #FFFC66;
-$colour-dark-yellow: #EFE708;
-$colour-defuse-green: #76E09E;
-$colour-light-green: #81CB3E;
-$colour-green: #029915;
-$colour-dark-green: #478960;
-$colour-black: #000000;
-$colour-dark-blue: #003EFF;
-$colour-light-blue: #4775FF;
-$colour-gray: #878787;
 a {
-  color: inherit;
-  text-decoration: inherit;
-  /*cursor: inherit;*/
+  color: $colour-gold;
+  text-decoration: none;
+
+  &:hover {
+    color: $colour-gold-hover;
+  }
 }
 
-
-
-button, input[type="submit"], input[type="reset"], a.button {
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  outline: inherit;
-  border: 3px solid #000000;
-  background-color: $colour-yellow;
-  padding: 1rem 1.5rem;
-  //min-height: 3rem;
-  align-items: center;
-  justify-content: space-between;
-  display: flex;
-  transition: background-color 0.22s, color 0.22s, fill 0.22s;
-  flex-direction: row;
-  gap: 1.5rem;
-  min-width: max-content;
-
-  &.small {
-    padding: 0.2rem;
+@keyframes frostdrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.45;
   }
-
-  &.green {
-    background-color: $colour-defuse-green;
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.05);
+    opacity: 0.7;
   }
-
-  &.blue {
-    background-color: $colour-light-blue;
-    color: #fff;
-
-    path {
-      fill: #fff;
-      transition: fill 0.22s;
-
-    }
-
-    &:hover {
-      color: #000;
-
-      path {
-        fill: #000;
-      }
-    }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.45;
   }
-
-  h1, h2, h3, h4, h5, p {
-    margin: 0;
-  }
-
-  &.highlighted {
-    background-color: $colour-dark-blue;
-  }
-
-  &:disabled, &.disabled {
-    cursor: initial;
-    background-color: #969696;
-  }
-  &.button-link {
-    background-color: unset;
-    border: none;
-    padding: 0 2rem;
-    margin: 0;
-
-    color:  #969696;
-    > * {
-      border-bottom: 2px solid #969696;
-    }
-
-    &:not(&:disabled, &.disabled, &.unstyled) {
-      color: black;
-      > * {
-        border-bottom-color: black;
-
-
-        &:hover {
-          border-bottom-color: transparent;
-        }
-      }
-    }
-    font-weight: 400;
-
-  }
-  &:not(&:disabled, &.disabled, &.unstyled, &.button-link) {
-    &:hover,
-      //&:focus,
-    &:active
-    {
-      background-color: #CAEBFD;
-    }
-  }
-
-
 }

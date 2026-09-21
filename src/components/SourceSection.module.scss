@@ -1,0 +1,113 @@
+@use '../styles/tokens' as *;
+
+.section {
+  @include section-shell;
+}
+
+.inner {
+  @include content-column;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.githubMark {
+  height: 30px;
+  width: 30px;
+  opacity: 0.85;
+}
+
+.heading {
+  @include section-heading;
+}
+
+.rule {
+  @include gold-rule;
+  flex: 1;
+  min-width: 40px;
+  width: auto;
+}
+
+.text {
+  margin: 0;
+  max-width: 700px;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: $colour-text-body;
+  text-wrap: pretty;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(285px, 100%), 1fr));
+  gap: 16px;
+}
+
+.card {
+  @include wc3-panel(22px);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 6px 8px;
+  transition: filter $transition, opacity $transition;
+
+  &:hover {
+    filter: brightness(1.3);
+  }
+
+  .eyebrow {
+    color: $colour-text-faint;
+  }
+
+  .repoName {
+    color: $colour-gold;
+  }
+
+  .description {
+    color: $colour-text-muted;
+  }
+}
+
+.cardArchived {
+  @extend .card;
+  @include wc3-disabled(22px);
+  opacity: 0.9;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .eyebrow {
+    color: $colour-archived-eyebrow;
+  }
+
+  .repoName {
+    color: $colour-archived-name;
+  }
+
+  .description {
+    color: $colour-archived-text;
+  }
+}
+
+.eyebrow {
+  @include label;
+}
+
+.repoName {
+  font-family: $font-label;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.description {
+  font-size: 15px;
+  line-height: 1.65;
+}

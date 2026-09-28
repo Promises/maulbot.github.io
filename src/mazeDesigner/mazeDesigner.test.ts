@@ -1,7 +1,9 @@
 import {analyse, mazeLength, PlacedTower, refusals} from './analysis';
 import {buildFileName, parseBuild, toBuild} from './build';
 import {PRESETS} from './lane';
-import {BUNDLED_RACES, indexRaces, normaliseRaces} from './races';
+import {BUNDLED_RACES, indexRaces, normaliseRaces, racesByTier} from './races';
+import {clickSelection, commonUpgrades, downgradeAll, removeAll, replaceAll, sameForm, upgradeAll} from './selection';
+import {poseAt, routeLength, walkRoute, walkSeconds} from './walk';
 
 const races = normaliseRaces(BUNDLED_RACES);
 const orc = indexRaces(races, ['Orc Stronghold']);
@@ -75,4 +77,58 @@ test('a build file survives a round trip, and a malformed one is refused', () =>
     expect(() => parseBuild({format: 'other'}, 0)).toThrow(/maul-build\/1/);
     expect(() => parseBuild({format: 'maul-build/1', towers: [{at: [1], chain: []}]}, 0)).toThrow(/tower 1/);
     expect(parseBuild({format: 'maul-build/1'}, 4200).budget).toBe(4200);
+});
+
+test('the races are offered by tier, Beginner first, alphabetical within a tier', () => {
+    const tiers = racesByTier(races);
+    expect(tiers.map((group) => group.tier).slice(0, 3)).toEqual(['Beginner', 'Intermediate', 'Advanced']);
+    tiers.forEach((group) => expect(group.names).toEqual([...group.names].sort((a, b) => a.localeCompare(b))));
+    expect(tiers.flatMap((group) => group.names).sort()).toEqual(races.map((race) => race.name).sort());
+});
+
+test('a click selects one tower, shift-click adds or drops one, a double-click takes every tower of its kind', () => {
+    expect(clickSelection([], 2, false)).toEqual([2]);
+    expect(clickSelection([2], 2, false)).toEqual([]);
+    expect(clickSelection([2, 5], 5, false)).toEqual([5]);
+    expect(clickSelection([5], 2, true)).toEqual([2, 5]);
+    expect(clickSelection([2, 5], 2, true)).toEqual([5]);
+    const design: PlacedTower[] = [
+        {at: [3, 3], chain: ['oC19']},
+        {at: [6, 3], chain: ['oC19', 'o00E']},
+        {at: [9, 3], chain: ['oC19']},
+    ];
+    expect(sameForm(design, 0)).toEqual([0, 2]);
+    expect(sameForm(design, 1)).toEqual([1]);
+});
+
+test('a selection upgrades, takes back and goes together', () => {
+    const design: PlacedTower[] = [{at: [3, 3], chain: ['oC19']}, {at: [6, 3], chain: ['oC19']}, {at: [9, 3], chain: ['hC02']}];
+    expect(commonUpgrades(design, [0, 1], orc)).toEqual(['o00E']);
+    expect(commonUpgrades(design, [0, 2], orc)).toEqual([]);
+    const upgraded = upgradeAll(design, [0, 1], 'o00E');
+    expect(upgraded.map((tower) => tower.chain.length)).toEqual([2, 2, 1]);
+    expect(analyse(upgraded, orc).gold).toBe(50 * 4 + 8);
+    expect(downgradeAll(upgraded, [0, 1, 2])).toEqual(design);
+    expect(removeAll(design, [0, 2])).toEqual([design[1]]);
+    // Replaced where they stand, as base towers, upgrades gone
+    const replaced = replaceAll(upgraded, [1, 2], 'oC58');
+    expect(replaced.map((tower) => tower.chain)).toEqual([['oC19', 'o00E'], ['oC58'], ['oC58']]);
+    expect(replaced.map((tower) => tower.at)).toEqual(design.map((tower) => tower.at));
+});
+
+test('the walker follows the whole way, and starts over at the end', () => {
+    const route = walkRoute(analyse([], orc).legs)!;
+    // An empty lane: 40 steps from the spawn cell to the exit cell
+    expect(route).toHaveLength(41);
+    expect(routeLength(route)).toBe(40);
+    expect(poseAt(route, 0)).toMatchObject({x: 9.5, y: 0.5});
+    const end = poseAt(route, 39.999);
+    expect(end.x).toBeCloseTo(12.5, 2);
+    expect(end.y).toBeCloseTo(37.5, 2);
+    // A full length is a full loop
+    expect(poseAt(route, 40)).toEqual(poseAt(route, 0));
+    expect(poseAt(route, 41)).toEqual(poseAt(route, 1));
+    // A Zergling (330) walks 40 cells of 64 in about 7.8 s
+    expect(walkSeconds(40)).toBeCloseTo(7.76, 2);
+    expect(walkRoute(analyse(at(Array.from({length: 12}, (_, i) => [1 + 2 * i, 20] as [number, number])), orc).legs)).toBeNull();
 });

@@ -6,7 +6,9 @@ import {buildFileName, parseBuild, toBuild} from '../mazeDesigner/build';
 import classNames from '../mazeDesigner/classNames';
 import {Corner, PresetName, PRESETS} from '../mazeDesigner/lane';
 import MazeBoard, {Ring, TowerView} from '../mazeDesigner/MazeBoard';
-import {BUNDLED_RACES, BUNDLED_SOURCE, indexRaces, normaliseRaces, Race, Tower, upgradeDepth} from '../mazeDesigner/races';
+import {BUNDLED_RACES, BUNDLED_SOURCE, indexRaces, normaliseRaces, Race, racesByTier, Tower, upgradeDepth} from '../mazeDesigner/races';
+import {clickSelection, commonUpgrades, downgradeAll, formOf, removeAll, replaceAll, sameForm, upgradeAll} from '../mazeDesigner/selection';
+import {CELL_SIZE, CREEP_SPEED, routeLength, walkRoute, walkSeconds} from '../mazeDesigner/walk';
 
 const STORE = 'maul-maze-designer/v1';
 const STORE_DATA = 'maul-maze-designer/race-data';
@@ -109,7 +111,8 @@ const MazeDesignerPage: FC = () => {
     const [notes, setNotes] = useState(saved?.notes || '');
     const [towers, setTowers] = useState<PlacedTower[]>(saved?.towers || []);
     const [armed, setArmed] = useState<string | null>(null);
-    const [selected, setSelected] = useState(-1);
+    const [selected, setSelected] = useState<number[]>([]);
+    const [walking, setWalking] = useState(false);
     const [hover, setHover] = useState<Corner | null>(null);
     const [status, setStatus] = useState<Status>({text: 'Ready', bad: false});
     const [showRanges, setShowRanges] = useState(false);
@@ -135,10 +138,10 @@ const MazeDesignerPage: FC = () => {
         }
     }, [races, raceA, raceB]);
 
-    const remove = useCallback((i: number) => {
-        setTowers((current) => current.filter((_, k) => k !== i));
-        setSelected(-1);
-        say('Tower removed');
+    const remove = useCallback((indices: number[]) => {
+        setTowers((current) => removeAll(current, indices));
+        setSelected([]);
+        say(indices.length === 1 ? 'Tower removed' : `${indices.length} towers removed`);
     }, []);
 
     useEffect(() => {
@@ -149,9 +152,9 @@ const MazeDesignerPage: FC = () => {
             }
             if (event.key === 'Escape') {
                 setArmed(null);
-                setSelected(-1);
+                setSelected([]);
             }
-            if ((event.key === 'Delete' || event.key === 'Backspace') && selected >= 0) {
+            if ((event.key === 'Delete' || event.key === 'Backspace') && selected.length) {
                 event.preventDefault();
                 remove(selected);
             }
@@ -172,24 +175,34 @@ const MazeDesignerPage: FC = () => {
             return;
         }
         setTowers([...towers, candidate]);
-        setSelected(towers.length);
+        setSelected([towers.length]);
         say(`Placed ${entry.tower.name} at ${at.join(', ')}`);
     };
 
-    const upgrade = (i: number, id: string) => {
-        const next = towers.map((tower, k) => (k === i ? {...tower, chain: [...tower.chain, id]} : tower));
+    /** Takes a changed design if it keeps the budget and the food; says why not otherwise. */
+    const change = (next: PlacedTower[], done: string): boolean => {
         const after = analyse(next, index);
         if (overBudget(after, budget)) {
             say(`Refused — Rule 4: ${fmt(after.gold)} gold is over the budget`, true);
-            return;
+            return false;
         }
         if (overFood(after)) {
             say(`Refused — Rule 6: needs ${after.foodUsed} food, farms make ${after.foodMade}`, true);
-            return;
+            return false;
         }
         setTowers(next);
-        say(`Upgraded to ${index.byId.get(id)?.tower.name ?? id}`);
+        say(done);
+        return true;
     };
+
+    const nameOf = (id: string) => index.byId.get(id)?.tower.name ?? id;
+    const towersText = (indices: number[]) => (indices.length === 1 ? 'Tower' : `${indices.length} towers`);
+
+    const upgrade = (indices: number[], id: string) =>
+        change(upgradeAll(towers, indices, id), `${towersText(indices)} upgraded to ${nameOf(id)}`);
+
+    const replace = (indices: number[], id: string) =>
+        change(replaceAll(towers, indices, id), `${towersText(indices)} replaced with ${nameOf(id)}`);
 
     const loadPreset = (preset: PresetName) => {
         // Built as the picked tower, else the first race's first base tower that attacks
@@ -200,7 +213,7 @@ const MazeDesignerPage: FC = () => {
             return;
         }
         setTowers(PRESETS[preset].map((at) => ({at, chain: [id]})));
-        setSelected(-1);
+        setSelected([]);
         if (name === DEFAULT_NAME) {
             setName(`${preset} maze, ${raceA}`);
         }
@@ -221,7 +234,7 @@ const MazeDesignerPage: FC = () => {
         setBudget(build.budget);
         setNotes(build.notes);
         setTowers(build.towers);
-        setSelected(-1);
+        setSelected([]);
         setArmed(null);
         say(`Imported ${build.name}`);
     };
@@ -254,7 +267,7 @@ const MazeDesignerPage: FC = () => {
             level: placed.chain.length - 1,
             race: entries[0] && entries[0].raceIndex > 0 ? 1 : 0,
             bad: problems.length > 0,
-            selected: selected === i,
+            selected: selected.includes(i),
             title: `${last ? last.tower.name : placed.chain.join(' → ')} · ${placed.at.join(', ')}${problems.length ? ' · ' + problems.join('; ') : ''}`,
         };
     });
@@ -266,13 +279,14 @@ const MazeDesignerPage: FC = () => {
             rings.push({at, radius: range / CELL, strong});
         }
     };
-    if (showRanges) {
-        towers.forEach((placed, i) => i !== selected && ringFor(placed.at, placed.chain[placed.chain.length - 1], false));
-    }
-    const current = selected >= 0 ? towers[selected] : undefined;
-    if (current) {
-        ringFor(current.at, current.chain[current.chain.length - 1], true);
-    }
+    towers.forEach((placed, i) => {
+        if (showRanges || selected.includes(i)) {
+            ringFor(placed.at, formOf(placed), selected.includes(i));
+        }
+    });
+    const current = selected.length === 1 ? towers[selected[0]] : undefined;
+    const route = walkRoute(analysis.legs);
+    const walkCells = route ? routeLength(route) : 0;
 
     const ghostWhy = armed && hover ? refusals(towers, {at: hover, chain: [armed]}, index, budget) : null;
     if (armed && hover) {
@@ -300,7 +314,19 @@ const MazeDesignerPage: FC = () => {
 
     const selectedEntries = current ? current.chain.map((id) => index.byId.get(id)) : [];
     const selectedLast = selectedEntries[selectedEntries.length - 1];
-    const raceOptions = races.map((race) => ({name: race.name, label: `${race.name} · ${race.tier}`}));
+    // A selection of several: how many of each form, and what their chains cost
+    const selectionKinds = Array.from(new Set(selected.map((i) => formOf(towers[i]))))
+        .map((form) => ({form, count: selected.filter((i) => formOf(towers[i]) === form).length}));
+    const selectionSteps = selected.flatMap((i) => towers[i].chain.map((id) => index.byId.get(id)?.tower.gold ?? null));
+    const selectionGold = selectionSteps.some((gold) => gold === null) ? null
+        : selectionSteps.reduce((sum: number, gold) => sum + (gold as number), 0);
+    const selectionUpgrades = commonUpgrades(towers, selected, index);
+    const tiers = racesByTier(races);
+    const raceOptions = (skip = '') => tiers.map(({tier, names}) => (
+        <optgroup key={tier} label={tier}>
+            {names.filter((raceName) => raceName !== skip).map((raceName) => <option key={raceName} value={raceName}>{raceName}</option>)}
+        </optgroup>
+    ));
     const towerCount = races.reduce((n, race) => n + race.towers.length, 0);
 
     const statusText = hover && ghostWhy ? (ghostWhy.length ? `${hover.join(', ')} — ${ghostWhy[0]}` : `Corner ${hover.join(', ')}`) : status.text;
@@ -337,7 +363,7 @@ const MazeDesignerPage: FC = () => {
                             }
                             setArmed(null);
                         }}>
-                            {raceOptions.map((option) => <option key={option.name} value={option.name}>{option.label}</option>)}
+                            {raceOptions()}
                         </select>
                     </label>
                     <label className={styles.field}>
@@ -347,8 +373,7 @@ const MazeDesignerPage: FC = () => {
                             setArmed(null);
                         }}>
                             <option value="">None</option>
-                            {raceOptions.filter((option) => option.name !== raceA)
-                                .map((option) => <option key={option.name} value={option.name}>{option.label}</option>)}
+                            {raceOptions(raceA)}
                         </select>
                     </label>
                 </Group>
@@ -389,7 +414,7 @@ const MazeDesignerPage: FC = () => {
                             </div>
                         );
                     })}
-                    <p className={styles.hint}>Pick a tower, then click a grid corner. Click a placed tower to upgrade it; right-click or Delete removes. Esc drops the pick.</p>
+                    <p className={styles.hint}>Pick a tower, then click a grid corner. Click a placed tower to select it, shift-click to add one, double-click for every tower of its kind. Right-click or Delete removes. Esc drops the pick.</p>
                 </Group>
 
                 <Group title="Map examples">
@@ -437,7 +462,7 @@ const MazeDesignerPage: FC = () => {
                     }} onError={(message) => say(message, true)}/>
                     <button type="button" className={styles.clearButton} onClick={() => {
                         setTowers([]);
-                        setSelected(-1);
+                        setSelected([]);
                         say('Lane cleared');
                     }}>Clear lane</button>
                     <p className={styles.hint}>Writes maul-build/1: corners in the canonical lane, one chain of ids per tower, in build order.</p>
@@ -465,12 +490,18 @@ const MazeDesignerPage: FC = () => {
                         onCornerClick={(corner) => {
                             if (armed) {
                                 place(corner);
-                            } else if (selected >= 0) {
-                                setSelected(-1);
+                            } else if (selected.length) {
+                                setSelected([]);
                             }
                         }}
-                        onTowerClick={(i) => setSelected(selected === i ? -1 : i)}
-                        onTowerRemove={remove}
+                        onTowerClick={(i, additive) => setSelected(clickSelection(selected, i, additive))}
+                        onTowerDoubleClick={(i) => {
+                            const kind = sameForm(towers, i);
+                            setSelected(kind);
+                            say(`${kind.length} × ${index.byId.get(formOf(towers[i]))?.tower.name ?? formOf(towers[i])} selected`);
+                        }}
+                        onTowerRemove={(i) => remove([i])}
+                        walker={walking && route ? {route, cellsPerSecond: CREEP_SPEED / CELL_SIZE} : null}
                     />
 
                     <div className={styles.panels}>
@@ -485,6 +516,16 @@ const MazeDesignerPage: FC = () => {
                                 ))}
                             </div>
                             <span className={styles.hint}>Spawn → 1 → 2 → exit, 4-neighbour cells, as the map's anti-block measures it. Empty lane: 40.</span>
+                            <div className={styles.walk}>
+                                <button type="button" className={styles.smallButton} disabled={!route} aria-pressed={walking && !!route}
+                                        onClick={() => setWalking(!walking)}>
+                                    {walking && route ? 'Stop walking' : 'Walk the maze'}
+                                </button>
+                                <span className={styles.hintSmall}>
+                                    {route ? `≈ ${walkSeconds(walkCells).toFixed(1)} s at speed ${CREEP_SPEED}` : 'The way is closed'}
+                                </span>
+                            </div>
+                            <span className={styles.hint}>A wave 34 Zergling's time along this way, start to exit. Real creeps cut corners, so they are a little quicker.</span>
                         </Panel>
 
                         <Panel title="Gold" aside={
@@ -513,34 +554,69 @@ const MazeDesignerPage: FC = () => {
                             </div>
                         </Panel>
 
-                        {current && (
-                            <Panel title={`Tower #${selected + 1}`} highlight aside={<span className={styles.hintSmall}>corner {current.at.join(', ')}</span>}>
-                                <span className={styles.selectedName}>{selectedLast ? selectedLast.tower.name : '?'}</span>
-                                <span className={styles.selectedLine}>
-                                    {selectedEntries[0] ? selectedEntries[0].race : '?'} · {selectedLast ? towerMeta(selectedLast.tower) : ''}
-                                </span>
-                                <span className={styles.selectedLine}>
-                                    {selectedEntries.map((entry, k) => (entry ? entry.tower.name : current.chain[k])).join(' → ')}
-                                </span>
+                        {selected.length > 0 && (
+                            <Panel
+                                title={current ? `Tower #${selected[0] + 1}` : `${selected.length} towers`}
+                                highlight
+                                aside={<span className={styles.hintSmall}>{current ? `corner ${current.at.join(', ')}` : 'shift-click adds or drops one'}</span>}
+                            >
+                                {current ? (
+                                    <>
+                                        <span className={styles.selectedName}>{selectedLast ? selectedLast.tower.name : '?'}</span>
+                                        <span className={styles.selectedLine}>
+                                            {selectedEntries[0] ? selectedEntries[0].race : '?'} · {selectedLast ? towerMeta(selectedLast.tower) : ''}
+                                        </span>
+                                        <span className={styles.selectedLine}>
+                                            {selectedEntries.map((entry, k) => (entry ? entry.tower.name : current.chain[k])).join(' → ')}
+                                        </span>
+                                    </>
+                                ) : (
+                                    selectionKinds.map(({form, count}) => (
+                                        <span key={form} className={styles.selectedLine}>{count} × {index.byId.get(form)?.tower.name ?? form}</span>
+                                    ))
+                                )}
                                 <span className={styles.selectedCost}>
-                                    {selectedEntries.every((entry) => entry && entry.tower.gold !== null)
-                                        ? `${fmt(selectedEntries.reduce((sum, entry) => sum + (entry?.tower.gold || 0), 0))} gold for the chain`
-                                        : 'Cost unknown — load race-data.json'}
+                                    {selectionGold === null
+                                        ? 'Cost unknown — load race-data.json'
+                                        : `${fmt(selectionGold)} gold for ${current ? 'the chain' : 'their chains'}`}
                                 </span>
-                                {selectedLast && selectedLast.tower.upgradesTo.map((id) => index.byId.get(id)).map((entry) => entry && (
+                                {selectionUpgrades.map((id) => index.byId.get(id)).map((entry) => entry && (
                                     <button key={entry.tower.id} type="button" className={styles.upgradeButton} onClick={() => upgrade(selected, entry.tower.id)}>
-                                        <span>Upgrade → {entry.tower.name}</span>
-                                        <span className={styles.towerGold}>{goldText(entry.tower)}</span>
+                                        <span>Upgrade {current ? '' : 'all '}→ {entry.tower.name}</span>
+                                        <span className={styles.towerGold}>
+                                            {current || entry.tower.gold === null ? goldText(entry.tower) : `${selected.length} × ${fmt(entry.tower.gold)} g`}
+                                        </span>
                                     </button>
                                 ))}
+                                <label className={styles.field}>
+                                    Replace with
+                                    <select name="replace" value="" onChange={(event) => event.target.value && replace(selected, event.target.value)}>
+                                        <option value="">A base tower of your races…</option>
+                                        {chosen.map((raceName) => {
+                                            const race = races.find((candidate) => candidate.name === raceName);
+                                            return race && (
+                                                <optgroup key={raceName} label={raceName}>
+                                                    {race.base.map((id) => race.towers.find((tower) => tower.id === id)).filter((tower): tower is Tower => !!tower)
+                                                        .map((tower) => <option key={tower.id} value={tower.id}>{tower.name} · {goldText(tower)}</option>)}
+                                                </optgroup>
+                                            );
+                                        })}
+                                    </select>
+                                </label>
                                 <div className={styles.selectedActions}>
-                                    {current.chain.length > 1 && (
-                                        <button type="button" className={styles.smallButton} onClick={() => setTowers(towers.map((tower, k) => (
-                                            k === selected ? {...tower, chain: tower.chain.slice(0, -1)} : tower)))}>Undo upgrade</button>
+                                    {selected.some((i) => towers[i].chain.length > 1) && (
+                                        <button type="button" className={styles.smallButton}
+                                                onClick={() => change(downgradeAll(towers, selected), `${towersText(selected)} downgraded`)}>
+                                            Downgrade
+                                        </button>
                                     )}
-                                    <button type="button" className={classNames(styles.smallButton, styles.removeButton)} onClick={() => remove(selected)}>Remove</button>
+                                    <button type="button" className={classNames(styles.smallButton, styles.removeButton)} onClick={() => remove(selected)}>
+                                        {current ? 'Remove' : 'Remove all'}
+                                    </button>
                                 </div>
-                                {analysis.problems[selected].map((problem) => <span key={problem} className={styles.problem}>{problem}</span>)}
+                                {selected.map((i) => analysis.problems[i].map((problem) => (
+                                    <span key={`${i} ${problem}`} className={styles.problem}>{current ? problem : `Tower #${i + 1}: ${problem}`}</span>
+                                )))}
                             </Panel>
                         )}
 

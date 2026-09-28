@@ -2,6 +2,8 @@ import {CSSProperties, FC, MouseEvent} from 'react';
 import classNames from './classNames';
 import {Area, Cell, CHECKPOINT_TILES, COLS, Corner, CORNER_MAX, CORNER_MIN, ENTRY_STRIP, EXIT_CELLS, ROWS, SPAWN_COLS, WAY_IN, WAY_OUT} from './lane';
 import styles from './MazeBoard.module.scss';
+import Walker from './Walker';
+import {Point} from './walk';
 
 export interface TowerView {
     at: Corner;
@@ -29,9 +31,13 @@ interface MazeBoardProps {
     /** The tower being placed, where it would go, and whether it may. */
     ghost: {at: Corner; ok: boolean} | null;
     placing: boolean;
+    /** The walker's route and speed, when it walks. */
+    walker: {route: Point[]; cellsPerSecond: number} | null;
     onHover: (corner: Corner | null) => void;
     onCornerClick: (corner: Corner) => void;
-    onTowerClick: (index: number) => void;
+    /** A click on a tower; `additive` with shift held. */
+    onTowerClick: (index: number, additive: boolean) => void;
+    onTowerDoubleClick: (index: number) => void;
     onTowerRemove: (index: number) => void;
 }
 
@@ -60,7 +66,9 @@ const MOUTH_OUT = {left: percent(WAY_OUT.col, COLS), width: percent(WAY_OUT.cols
 const SPAWNS = SPAWN_COLS.map((col) => ({left: percent(col, COLS)}));
 const LEG_CLASSES = [styles.legOne, styles.legTwo, styles.legThree];
 
-const MazeBoard: FC<MazeBoardProps> = ({towers, legs, rings, ghost, placing, onHover, onCornerClick, onTowerClick, onTowerRemove}) => {
+const MazeBoard: FC<MazeBoardProps> = (
+    {towers, legs, rings, ghost, placing, walker, onHover, onCornerClick, onTowerClick, onTowerDoubleClick, onTowerRemove},
+) => {
     // The corner nearest the pointer, kept to where a tower's footprint fits
     const cornerAt = (event: MouseEvent<HTMLDivElement>): Corner => {
         const box = event.currentTarget.getBoundingClientRect();
@@ -101,6 +109,7 @@ const MazeBoard: FC<MazeBoardProps> = ({towers, legs, rings, ghost, placing, onH
                             <circle key={i} className={classNames(styles.ring, ring.strong && styles.ringStrong)}
                                     cx={ring.at[0]} cy={ROWS - ring.at[1]} r={ring.radius}/>
                         ))}
+                        {walker && <Walker route={walker.route} cellsPerSecond={walker.cellsPerSecond}/>}
                     </svg>
 
                     {towers.map((tower, i) => (
@@ -111,7 +120,11 @@ const MazeBoard: FC<MazeBoardProps> = ({towers, legs, rings, ghost, placing, onH
                             title={tower.title}
                             onClick={(event) => {
                                 event.stopPropagation();
-                                onTowerClick(i);
+                                onTowerClick(i, event.shiftKey);
+                            }}
+                            onDoubleClick={(event) => {
+                                event.stopPropagation();
+                                onTowerDoubleClick(i);
                             }}
                             onContextMenu={(event) => {
                                 event.preventDefault();

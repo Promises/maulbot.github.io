@@ -523,6 +523,24 @@ $race-second-border: #5fa8d6;
 .smallButton {
   @include tool-button(11px, 0.08em, 9px 8px);
   flex: 1;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.walk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid $tool-line;
+
+  .smallButton {
+    flex: 0 0 auto;
+    padding: 9px 12px;
+  }
 }
 
 .removeButton {

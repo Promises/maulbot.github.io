@@ -81,6 +81,19 @@ export function normaliseRaces(data: unknown): Race[] {
         });
 }
 
+const TIER_ORDER = ['Beginner', 'Intermediate', 'Advanced'];
+
+/** Race names grouped by tier, Beginner to Advanced then any other, each alphabetical. */
+export function racesByTier(races: Race[]): {tier: string; names: string[]}[] {
+    const rank = (tier: string) => (TIER_ORDER.includes(tier) ? TIER_ORDER.indexOf(tier) : TIER_ORDER.length);
+    const tiers = Array.from(new Set(races.map((race) => race.tier)))
+        .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+    return tiers.map((tier) => ({
+        tier,
+        names: races.filter((race) => race.tier === tier).map((race) => race.name).sort((a, b) => a.localeCompare(b)),
+    }));
+}
+
 export interface TowerEntry {
     tower: Tower;
     race: string;

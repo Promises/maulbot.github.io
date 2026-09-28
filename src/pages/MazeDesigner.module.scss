@@ -1,0 +1,606 @@
+@use '../styles/tool' as *;
+
+// Swatches for the design's first and second race (the board uses the same)
+$race-first-bg: #2b2416;
+$race-first-border: #c8a55a;
+$race-second-bg: #142433;
+$race-second-border: #5fa8d6;
+
+.designer {
+  display: flex;
+  min-height: 100vh;
+  background: $tool-page;
+  color: $tool-text;
+  font-family: $tool-font-body;
+  -webkit-font-smoothing: antialiased;
+
+  select option {
+    background: $tool-input;
+    color: $tool-text-input;
+  }
+
+  @media (max-width: $tool-narrow) {
+    flex-direction: column;
+  }
+}
+
+// Sidebar -----------------------------------------------------------------------------------
+
+.sidebar {
+  box-sizing: border-box;
+  flex: 0 0 330px;
+  width: 330px;
+  max-height: 100vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 22px 20px 40px;
+  background: $tool-panel;
+  border-right: 1px solid $tool-line;
+
+  @media (max-width: $tool-narrow) {
+    position: static;
+    flex: none;
+    width: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid $tool-line;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brandKicker {
+  @include tool-small-caps(11px, 0.24em);
+  color: $tool-kicker;
+}
+
+.brandTitle {
+  margin: 0;
+  font-family: $tool-font-display;
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.1;
+  color: $tool-heading;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupTitle {
+  @include tool-small-caps(10.5px, 0.22em);
+  margin: 0;
+  padding-bottom: 6px;
+  font-weight: 400;
+  color: $tool-kicker;
+  border-bottom: 1px solid $tool-line;
+}
+
+%input {
+  font: inherit;
+  font-size: 14px;
+  color: $tool-text-input;
+  background: $tool-input;
+  border: 1px solid $tool-input-border;
+  border-radius: 3px;
+  outline: none;
+
+  &:focus {
+    border-color: $tool-accent;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: $tool-label;
+
+  input {
+    @extend %input;
+    padding: 9px 11px;
+  }
+
+  select {
+    @extend %input;
+    padding: 9px 8px;
+  }
+}
+
+.fieldNote {
+  font-size: 12px;
+  color: $tool-hint;
+}
+
+.notes {
+  @extend %input;
+  padding: 9px 11px;
+  resize: vertical;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: $tool-hint;
+}
+
+.hintSmall {
+  font-size: 12px;
+  color: $tool-hint;
+}
+
+.palette {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paletteRace {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: $tool-label;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border: 1px solid;
+}
+
+.raceFirst {
+  background: $race-first-bg;
+  border-color: $race-first-border;
+}
+
+.raceSecond {
+  background: $race-second-bg;
+  border-color: $race-second-border;
+}
+
+.towerButton {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 10px;
+  align-items: baseline;
+  text-align: left;
+  font: inherit;
+  padding: 8px 10px;
+  color: $tool-text;
+  background: $tool-input;
+  border: 1px solid $tool-input-border;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $tool-accent;
+  }
+}
+
+.towerButtonArmed {
+  background: #0f1a26;
+  border-color: $tool-accent;
+}
+
+.towerName {
+  font-size: 14px;
+  color: $tool-text-input;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.towerGold {
+  font-size: 13px;
+  color: $tool-gold;
+  font-variant-numeric: tabular-nums;
+}
+
+.towerMeta {
+  font-size: 12px;
+  color: $tool-hint;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.presetButton {
+  @include tool-button;
+  display: flex;
+  justify-content: center;
+
+  input {
+    display: none;
+  }
+}
+
+.dataSource {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: $tool-label;
+}
+
+.dataSourceName {
+  color: $tool-text-input;
+}
+
+.linkButton {
+  align-self: flex-start;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: $tool-accent;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: $tool-accent-light;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.exportButton {
+  @include tool-small-caps(14px, 0.1em);
+  font-weight: 700;
+  padding: 13px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #08121c;
+  background: linear-gradient(180deg, $tool-accent-light, $tool-accent);
+  border: 0;
+
+  &:hover {
+    background: linear-gradient(180deg, #a8dcff, #3fb2f2);
+  }
+}
+
+.importButton {
+  @include tool-button(14px, 0.1em, 13px 16px);
+  display: flex;
+  justify-content: center;
+
+  input {
+    display: none;
+  }
+}
+
+.clearButton {
+  @include tool-small-caps(12px, 0.1em);
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: $tool-label;
+  background: transparent;
+  border: 1px solid $tool-line;
+
+  &:hover {
+    color: $tool-text-input;
+    border-color: $tool-button-border;
+  }
+}
+
+// Stage -------------------------------------------------------------------------------------
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+}
+
+.stageHeader {
+  @include tool-small-caps(11px, 0.24em);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $tool-hint;
+}
+
+.stageTitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  display: block;
+  height: 16px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.12em;
+}
+
+.statusOk {
+  color: $tool-ok;
+}
+
+.statusBad {
+  color: $tool-bad;
+}
+
+.workspace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.panels {
+  flex: 1 1 260px;
+  max-width: 340px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: $tool-panel;
+  border: 1px solid $tool-line;
+  border-radius: 3px;
+}
+
+.panelHighlight {
+  gap: 10px;
+  border-color: $tool-accent;
+}
+
+.panelHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.panelTitle {
+  @include tool-small-caps(10.5px, 0.22em);
+  color: $tool-kicker;
+}
+
+.panelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 8px;
+  border-top: 1px solid $tool-line;
+  font-size: 13px;
+  color: $tool-label;
+}
+
+.length {
+  font-family: $tool-font-display;
+  font-size: 46px;
+  line-height: 1;
+  color: $tool-heading;
+}
+
+.lengthClosed {
+  color: $tool-bad;
+}
+
+.legs {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: $tool-label;
+  font-variant-numeric: tabular-nums;
+}
+
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legSwatch {
+  width: 12px;
+  height: 2px;
+}
+
+.legOne {
+  background: $tool-accent;
+}
+
+.legTwo {
+  background: $tool-gold;
+}
+
+.legThree {
+  background: $tool-frost;
+}
+
+.goldText {
+  font-size: 15px;
+  color: $tool-gold;
+  font-variant-numeric: tabular-nums;
+}
+
+.foodText {
+  font-size: 15px;
+  color: $tool-text-input;
+  font-variant-numeric: tabular-nums;
+}
+
+.textBad {
+  color: $tool-bad;
+}
+
+.count {
+  color: $tool-text-input;
+}
+
+.meter {
+  height: 6px;
+  overflow: hidden;
+  background: $tool-input;
+  border: 1px solid $tool-input-border;
+  border-radius: 2px;
+}
+
+.meterFill {
+  height: 100%;
+  background: linear-gradient(90deg, $race-first-border, $tool-gold);
+}
+
+.meterOver {
+  background: $tool-bad;
+}
+
+.selectedName {
+  font-size: 18px;
+  color: $tool-heading;
+}
+
+.selectedLine {
+  font-size: 13px;
+  line-height: 1.5;
+  color: $tool-label;
+}
+
+.selectedCost {
+  font-size: 13px;
+  color: $tool-gold;
+}
+
+.upgradeButton {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  color: $tool-text-input;
+  background: #0f1a26;
+  border: 1px solid $tool-input-border;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    border-color: $tool-accent;
+  }
+}
+
+.selectedActions {
+  display: flex;
+  gap: 8px;
+}
+
+.smallButton {
+  @include tool-button(11px, 0.08em, 9px 8px);
+  flex: 1;
+}
+
+.removeButton {
+  color: $tool-bad-text;
+  border-color: #5a3340;
+
+  &:hover {
+    background: #2a1c24;
+  }
+}
+
+.problem {
+  font-size: 12px;
+  line-height: 1.5;
+  color: $tool-bad;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.ruleNumber {
+  font-size: 11px;
+  color: $tool-hint;
+  font-variant-numeric: tabular-nums;
+}
+
+.ruleLabel {
+  color: $tool-label;
+}
+
+.ruleState {
+  @include tool-small-caps(10.5px, 0.12em);
+}
+
+.stateOk {
+  color: $tool-ok;
+}
+
+.stateBad {
+  color: $tool-bad;
+}
+
+.stateUnknown {
+  color: $tool-hint;
+}
+
+.problems {
+  box-sizing: border-box;
+  height: 132px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: $tool-input;
+  border: 1px solid $tool-line;
+  border-radius: 3px;
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: $tool-label;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: $tool-accent;
+  }
+}

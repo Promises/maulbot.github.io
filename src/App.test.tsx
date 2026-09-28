@@ -38,3 +38,16 @@ test('loading screen studio renders its controls without the site chrome', async
     expect(screen.getByRole('button', {name: /export png/i})).toBeDisabled();
     expect(screen.queryByRole('link', {name: /download/i})).not.toBeInTheDocument();
 });
+
+test('maze designer renders the lane and its rules without the site chrome', async () => {
+    await renderAt(ROUTES.mazeDesigner);
+    // Loaded on demand
+    expect(await screen.findByRole('heading', {name: /maze designer/i})).toBeInTheDocument();
+    expect(screen.getByTestId('maze-board')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Ready');
+    // An empty lane measures 40, and the bundled tower data offers the default race's towers
+    expect(screen.getByText('40')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /headhunter/i})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /export build/i})).toBeEnabled();
+    expect(screen.queryByRole('link', {name: /download/i})).not.toBeInTheDocument();
+});

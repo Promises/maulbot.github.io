@@ -1,0 +1,218 @@
+@use '../styles/tool' as *;
+
+$board-ground: #0f141c;
+$board-grid: #1a2230;
+$board-hatch-a: #1f2836;
+$board-hatch-b: #151b26;
+$mouth: 22px;
+
+// The lane's frame: as tall as the window allows, never wider than the column
+.frame {
+  flex: 0 1 auto;
+  width: min(100%, calc((100vh - 150px) * 24 / 38));
+  min-width: 300px;
+  padding: $mouth 0;
+  border: 1px solid $tool-line;
+  background: #05070b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.lane {
+  position: relative;
+}
+
+// The gaps in the wall where creeps come in and go out
+.mouthIn,
+.mouthOut {
+  position: absolute;
+  height: $mouth;
+  background: $board-ground;
+  border-left: 1px solid $tool-input-border;
+  border-right: 1px solid $tool-input-border;
+}
+
+.mouthIn {
+  top: -$mouth;
+}
+
+.mouthOut {
+  bottom: -$mouth;
+}
+
+.spawn {
+  position: absolute;
+  top: -18px;
+  transform: translateX(-50%);
+  font-family: $tool-font-label;
+  font-size: 10px;
+  color: $tool-frost;
+}
+
+.board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 24 / 38;
+  background-color: $board-ground;
+  background-image: linear-gradient(90deg, $board-grid 1px, transparent 1px), linear-gradient(0deg, $board-grid 1px, transparent 1px);
+  background-size: calc(100% / 24) calc(100% / 38);
+  box-shadow: inset 0 0 0 1px $tool-input-border;
+  cursor: default;
+  user-select: none;
+}
+
+.placing {
+  cursor: crosshair;
+}
+
+.unbuildable {
+  position: absolute;
+  background: repeating-linear-gradient(135deg, $board-hatch-a 0 4px, $board-hatch-b 4px 8px);
+}
+
+.checkpoint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $tool-font-label;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.checkpointOne {
+  box-shadow: inset 0 0 0 1px $tool-accent;
+  color: $tool-accent-light;
+}
+
+.checkpointTwo {
+  box-shadow: inset 0 0 0 1px $tool-gold;
+  color: $tool-gold;
+}
+
+.exit {
+  box-shadow: inset 0 0 0 1px $tool-frost;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.leg {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+}
+
+.legOne {
+  stroke: $tool-accent;
+}
+
+.legTwo {
+  stroke: $tool-gold;
+}
+
+.legThree {
+  stroke: $tool-frost;
+}
+
+.ring {
+  fill: rgba(42, 164, 232, 0.03);
+  stroke: rgba(42, 164, 232, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.ringStrong {
+  fill: rgba(42, 164, 232, 0.08);
+  stroke: $tool-accent;
+}
+
+.towerSlot {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.tower {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--race-bg);
+  border: 1px solid var(--race-border);
+  border-radius: 2px;
+  font-family: $tool-font-label;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--race-text);
+  letter-spacing: 0.04em;
+}
+
+.raceFirst {
+  --race-bg: #2b2416;
+  --race-border: #c8a55a;
+  --race-text: #{$tool-heading};
+}
+
+.raceSecond {
+  --race-bg: #142433;
+  --race-border: #5fa8d6;
+  --race-text: #{$tool-text};
+}
+
+.towerBad {
+  --race-border: #{$tool-bad};
+  --race-text: #{$tool-bad-text};
+}
+
+.towerSelected {
+  border-color: $tool-accent-light;
+  box-shadow: 0 0 0 2px $tool-accent, 0 0 14px rgba(42, 164, 232, 0.5);
+}
+
+.towerLevel {
+  margin-top: 2px;
+  font-size: 8px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.ghost {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed var(--ghost);
+  background: var(--ghost-fill);
+  pointer-events: none;
+}
+
+.ghostCorner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--ghost);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.ghostOk {
+  --ghost: #{$tool-ok};
+  --ghost-fill: rgba(92, 201, 138, 0.18);
+}
+
+.ghostBad {
+  --ghost: #{$tool-bad};
+  --ghost-fill: rgba(224, 90, 90, 0.18);
+}

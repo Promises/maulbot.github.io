@@ -1,0 +1,53 @@
+// The tools (Maze Designer; the same values as the Loading Screen Studio's own) are not
+// marketing pages: they keep a cool, neutral palette of their own.
+
+$tool-page: #0b0d12;
+$tool-panel: #11151d;
+$tool-line: #222a38;
+$tool-input: #0a0e15;
+$tool-input-border: #2a3444;
+$tool-text: #dfe6f0;
+$tool-text-input: #eef3fa;
+$tool-label: #a9b6c8;
+$tool-kicker: #7d8ba1;
+$tool-hint: #6f7d92;
+$tool-heading: #f0e3c0;
+$tool-accent: #2aa4e8;
+$tool-accent-light: #8fd0ff;
+$tool-gold: #e8c977;
+$tool-frost: #9ed2ee;
+$tool-ok: #5cc98a;
+$tool-bad: #e05a5a;
+$tool-bad-text: #f3b0b0;
+$tool-button: #1b2231;
+$tool-button-hover: #222b3e;
+$tool-button-border: #33405a;
+
+$tool-font-body: 'Spectral', Georgia, serif;
+$tool-font-label: 'Cinzel', serif;
+$tool-font-display: lifecraft, 'Cinzel', serif;
+
+$tool-narrow: 900px;
+
+@mixin tool-small-caps($size, $tracking) {
+  font-family: $tool-font-label;
+  font-size: $size;
+  letter-spacing: $tracking;
+  text-transform: uppercase;
+}
+
+// A secondary button: Cinzel caps on a dark panel
+@mixin tool-button($size: 12px, $tracking: 0.08em, $padding: 10px 6px) {
+  @include tool-small-caps($size, $tracking);
+  font-weight: 700;
+  padding: $padding;
+  border-radius: 3px;
+  cursor: pointer;
+  color: $tool-heading;
+  background: $tool-button;
+  border: 1px solid $tool-button-border;
+
+  &:hover {
+    background: $tool-button-hover;
+  }
+}

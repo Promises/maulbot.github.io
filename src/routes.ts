@@ -2,6 +2,7 @@ export const ROUTES = {
     home: '/',
     changelog: '/changelog',
     loadingScreenStudio: '/loading-screen',
+    mazeDesigner: '/maze-designer',
 } as const;
 
 /** Anchor on the home page, usable from any route (`/#discord`). */

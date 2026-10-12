@@ -4,6 +4,7 @@ import {PRESETS} from './lane';
 import {BUNDLED_RACES, indexRaces, normaliseRaces, racesByTier} from './races';
 import {clickSelection, commonUpgrades, downgradeAll, removeAll, replaceAll, sameForm, upgradeAll} from './selection';
 import {poseAt, routeLength, walkRoute, walkSeconds} from './walk';
+import {walkLength} from './pathing';
 
 const races = normaliseRaces(BUNDLED_RACES);
 const orc = indexRaces(races, ['Orc Stronghold']);
@@ -116,21 +117,40 @@ test('a selection upgrades, takes back and goes together', () => {
     expect(replaced.map((tower) => tower.at)).toEqual(design.map((tower) => tower.at));
 });
 
+test('the creeps walk in both directions at once, never across a corner', () => {
+    const empty = analyse([], orc);
+    const [first, second] = empty.creepWays;
+    // An open lane: straight at the checkpoints, diagonals included, so shorter than the
+    // map's up-down-left-right measure, and never shorter than a straight line
+    const toOne = walkLength(first[0]!);
+    expect(toOne).toBeGreaterThanOrEqual(Math.hypot(12 - 9.5, 37.5 - 28));
+    expect(toOne).toBeLessThan(12);
+    expect(first[0]!.some((point, i) => i > 0 && point.x !== first[0]![i - 1].x && point.y !== first[0]![i - 1].y)).toBe(true);
+    expect(first.slice(1)).toEqual(second.slice(1));
+    // Two halves of a wall meeting only at a corner: closed to creeps as to the anti-block
+    const left = Array.from({length: 6}, (_, i) => [1 + 2 * i, 20] as [number, number]);
+    const right = Array.from({length: 6}, (_, i) => [13 + 2 * i, 18] as [number, number]);
+    expect(analyse(at([...left, ...right]), orc).creepWays[0][1]).toBeNull();
+    // Each maze the map has measured is walkable, and no longer than the map's measure
+    (['Circle', 'Simple', 'Advanced'] as const).forEach((name) => {
+        const analysis = analyse(at(PRESETS[name]), orc);
+        const walked = analysis.creepWays[0].reduce((sum, leg) => sum + walkLength(leg!), 0);
+        expect(walked).toBeLessThanOrEqual(mazeLength(analysis.legs).total!);
+    });
+});
+
 test('the walker follows the whole way, and starts over at the end', () => {
-    const route = walkRoute(analyse([], orc).legs)!;
-    // An empty lane: 40 steps from the spawn cell to the exit cell
-    expect(route).toHaveLength(41);
-    expect(routeLength(route)).toBe(40);
-    expect(poseAt(route, 0)).toMatchObject({x: 9.5, y: 0.5});
-    const end = poseAt(route, 39.999);
-    expect(end.x).toBeCloseTo(12.5, 2);
-    expect(end.y).toBeCloseTo(37.5, 2);
+    const route = walkRoute(analyse([], orc).creepWays[0])!;
+    const length = routeLength(route);
+    expect(poseAt(route, 0)).toMatchObject({x: 9.5, y: 38 - 37.5});
+    const end = poseAt(route, length - 0.001);
+    expect(end.x).toBeCloseTo(12, 2);
+    expect(end.y).toBeCloseTo(38, 2);
     // A full length is a full loop
-    expect(poseAt(route, 40)).toEqual(poseAt(route, 0));
-    expect(poseAt(route, 41)).toEqual(poseAt(route, 1));
+    expect(poseAt(route, length).x).toBeCloseTo(poseAt(route, 0).x, 6);
     // A Zergling (330) walks 40 cells of 64 in about 7.8 s
     expect(walkSeconds(40)).toBeCloseTo(7.76, 2);
-    expect(walkRoute(analyse(at(Array.from({length: 12}, (_, i) => [1 + 2 * i, 20] as [number, number])), orc).legs)).toBeNull();
+    expect(walkRoute(analyse(at(Array.from({length: 12}, (_, i) => [1 + 2 * i, 20] as [number, number])), orc).creepWays[0])).toBeNull();
 });
 
 test('the second spawn has its own way to checkpoint 1, and the same way after it', () => {

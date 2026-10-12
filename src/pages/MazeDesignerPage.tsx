@@ -9,6 +9,7 @@ import MazeBoard, {Ring, TowerView} from '../mazeDesigner/MazeBoard';
 import {BUNDLED_RACES, BUNDLED_SOURCE, indexRaces, normaliseRaces, Race, racesByTier, Tower, upgradeDepth} from '../mazeDesigner/races';
 import {clickSelection, commonUpgrades, downgradeAll, formOf, removeAll, replaceAll, sameForm, upgradeAll} from '../mazeDesigner/selection';
 import {CELL_SIZE, CREEP_SPEED, routeLength, walkRoute, walkSeconds} from '../mazeDesigner/walk';
+import {walkLength} from '../mazeDesigner/pathing';
 
 const STORE = 'maul-maze-designer/v1';
 const STORE_DATA = 'maul-maze-designer/race-data';
@@ -288,7 +289,10 @@ const MazeDesignerPage: FC = () => {
         }
     });
     const current = selected.length === 1 ? towers[selected[0]] : undefined;
-    const routes = ways.map(walkRoute);
+    // How the creeps walk it (pathing.ts), from each spawn: the lines drawn and the walkers
+    const routes = analysis.creepWays.map(walkRoute);
+    const walkLegs = analysis.creepWays.map((way) => way.map((leg) => (leg ? walkLength(leg) : null)));
+    const legText = (length: number | null) => (length === null ? '—' : length.toFixed(1));
     const walkable = routes.every((route) => route !== null);
 
     const ghostWhy = armed && hover ? refusals(towers, {at: hover, chain: [armed]}, index, budget) : null;
@@ -483,7 +487,7 @@ const MazeDesignerPage: FC = () => {
                 <div className={styles.workspace}>
                     <MazeBoard
                         towers={towerViews}
-                        legs={analysis.legs}
+                        ways={analysis.creepWays}
                         rings={rings}
                         ghost={hover && ghostWhy ? {at: hover, ok: !ghostWhy.length} : null}
                         placing={!!armed}
@@ -506,24 +510,31 @@ const MazeDesignerPage: FC = () => {
                             say(`${kind.length} × ${index.byId.get(formOf(towers[i]))?.tower.name ?? formOf(towers[i])} selected`);
                         }}
                         onTowerRemove={(i) => remove([i])}
-                        secondSpawnLeg={analysis.spawnLegs[1]}
                         walkers={walking && walkable ? routes.map((route) => ({route: route!, cellsPerSecond: CREEP_SPEED / CELL_SIZE})) : []}
                     />
 
                     <div className={styles.panels}>
                         <Panel title="Maze length">
                             <span className={classNames(styles.length, closed && styles.lengthClosed)}>{closed ? 'Closed' : total}</span>
+                            <span className={styles.hint}>
+                                The map's anti-block measure: spawn → 1 → 2 → exit in 64-unit cells, stepping only up, down,
+                                left or right (empty lane: 40; from the second spawn: {measures[1].total ?? 'closed'}).
+                            </span>
+                            <div className={styles.panelRow}>
+                                <span className={styles.panelTitle}>Creeps walk</span>
+                            </div>
                             <div className={styles.legs}>
-                                {lengths.map((length, i) => (
+                                {walkLegs[0].map((length, i) => (
                                     <span key={i} className={styles.leg}>
                                         <span className={classNames(styles.legSwatch, [styles.legOne, styles.legTwo, styles.legThree][i])}/>
-                                        {length ?? '—'}{i === 0 ? ` · ${measures[1].lengths[0] ?? '—'}` : ''}
+                                        {legText(length)}{i === 0 ? ` · ${legText(walkLegs[1][0])}` : ''}
                                     </span>
                                 ))}
                             </div>
                             <span className={styles.hint}>
-                                Spawn → 1 → 2 → exit, 4-neighbour cells, as the map's anti-block measures it (from the first
-                                spawn, the solid line; empty lane: 40). From the second, the dashed line: {measures[1].total ?? 'closed'}.
+                                The lines, in cells: A* on the game's 32-unit pathing grid, moving in both directions at once where
+                                both cells beside the step are free (RuneScape's client rule), so never across a tower's corner.
+                                Solid from the first spawn, dashed from the second.
                             </span>
                             <div className={styles.walk}>
                                 <button type="button" className={styles.smallButton} disabled={!walkable} aria-pressed={walking && walkable}
@@ -536,7 +547,7 @@ const MazeDesignerPage: FC = () => {
                                         : 'The way is closed'}
                                 </span>
                             </div>
-                            <span className={styles.hint}>A wave 34 Zergling's time from each spawn to the exit; one walks from each, as the creeps spawn in pairs. Real creeps cut corners, so they are a little quicker.</span>
+                            <span className={styles.hint}>A wave 34 Zergling's time from each spawn to the exit; one walks from each, as the creeps spawn in pairs.</span>
                         </Panel>
 
                         <Panel title="Gold" aside={

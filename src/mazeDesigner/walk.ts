@@ -1,6 +1,7 @@
-import {Cell, ROWS} from './lane';
+import {ROWS} from './lane';
+import {LanePoint} from './pathing';
 
-// A walker for the maze: it follows the way the path check found, spawn → 1 → 2 → exit, and
+// A walker for the maze: it follows the way a creep walks (pathing.ts), spawn → 1 → 2 → exit, and
 // starts again at the spawn. Points are in board units (one per cell, y down, as the board's SVG).
 
 /** Speed of wave 34's Zerglings, in world units a second. */
@@ -18,19 +19,20 @@ export interface Pose extends Point {
     angle: number;
 }
 
-const toPoint = ([col, row]: Cell): Point => ({x: col + 0.5, y: ROWS - row - 0.5});
+/** A lane point as a board point (the board's y runs down). */
+export const toBoard = ({x, y}: LanePoint): Point => ({x, y: ROWS - y});
 
-/** The whole way as one line of points, or null while any leg is closed. */
-export function walkRoute(legs: (Cell[] | null)[]): Point[] | null {
+/** A creep's whole way as one line of board points, or null while any leg is closed. */
+export function walkRoute(legs: (LanePoint[] | null)[]): Point[] | null {
     if (!legs.length || legs.some((leg) => !leg)) {
         return null;
     }
-    const cells: Cell[] = [];
-    (legs as Cell[][]).forEach((leg) => {
+    const points: LanePoint[] = [];
+    (legs as LanePoint[][]).forEach((leg) => {
         // Each leg starts where the one before ended
-        cells.push(...(cells.length ? leg.slice(1) : leg));
+        points.push(...(points.length ? leg.slice(1) : leg));
     });
-    return cells.map(toPoint);
+    return points.map(toBoard);
 }
 
 /** Length of the line, in cells. */

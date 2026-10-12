@@ -1,9 +1,10 @@
 import {CSSProperties, FC, MouseEvent} from 'react';
 import classNames from './classNames';
-import {Area, Cell, CHECKPOINT_TILES, COLS, Corner, CORNER_MAX, CORNER_MIN, ENTRY_STRIP, EXIT_CELLS, ROWS, SPAWN_COLS, WAY_IN, WAY_OUT} from './lane';
+import {Area, CHECKPOINT_TILES, COLS, Corner, CORNER_MAX, CORNER_MIN, ENTRY_STRIP, EXIT_CELLS, ROWS, SPAWN_COLS, WAY_IN, WAY_OUT} from './lane';
 import styles from './MazeBoard.module.scss';
 import Walker from './Walker';
-import {Point} from './walk';
+import {Point, toBoard} from './walk';
+import {LanePoint} from './pathing';
 
 export interface TowerView {
     at: Corner;
@@ -26,9 +27,9 @@ export interface Ring {
 
 interface MazeBoardProps {
     towers: TowerView[];
-    legs: (Cell[] | null)[];
-    /** The second spawn's way to checkpoint 1 (the first spawn's is legs[0]). */
-    secondSpawnLeg: Cell[] | null;
+    /** The creeps' way from each spawn, as three legs (pathing.ts); the second spawn's differs
+     * only in its first. */
+    ways: (LanePoint[] | null)[][];
     rings: Ring[];
     /** The tower being placed, where it would go, and whether it may. */
     ghost: {at: Corner; ok: boolean} | null;
@@ -56,9 +57,9 @@ const areaBox = ({col, row, cols, rows}: Area): CSSProperties => ({
 /** A tower's 2x2 footprint around its corner. */
 const towerBox = ([cx, cy]: Corner): CSSProperties => areaBox({col: cx - 1, row: cy - 1, cols: 2, rows: 2});
 
-/** SVG points along a path of cells (the board's viewBox is one unit per cell, y down). */
-const pathPoints = (path: Cell[] | null): string =>
-    (path ? path.map(([col, row]) => `${col + 0.5},${ROWS - row - 0.5}`).join(' ') : '');
+/** SVG points along a creep's way (the board's viewBox is one unit per maze cell, y down). */
+const pathPoints = (path: LanePoint[] | null): string =>
+    (path ? path.map((point) => toBoard(point)).map(({x, y}) => `${x},${y}`).join(' ') : '');
 
 const ENTRY = areaBox(ENTRY_STRIP);
 const CHECKPOINTS = CHECKPOINT_TILES.map(areaBox);
@@ -69,7 +70,7 @@ const SPAWNS = SPAWN_COLS.map((col) => ({left: percent(col, COLS)}));
 const LEG_CLASSES = [styles.legOne, styles.legTwo, styles.legThree];
 
 const MazeBoard: FC<MazeBoardProps> = (
-    {towers, legs, secondSpawnLeg, rings, ghost, placing, walkers, onHover, onCornerClick, onTowerClick, onTowerDoubleClick, onTowerRemove},
+    {towers, ways, rings, ghost, placing, walkers, onHover, onCornerClick, onTowerClick, onTowerDoubleClick, onTowerRemove},
 ) => {
     // The corner nearest the pointer, kept to where a tower's footprint fits
     const cornerAt = (event: MouseEvent<HTMLDivElement>): Corner => {
@@ -104,10 +105,12 @@ const MazeBoard: FC<MazeBoardProps> = (
                     <div className={classNames(styles.unbuildable, styles.exit)} style={EXIT}/>
 
                     <svg className={styles.overlay} viewBox={`0 0 ${COLS} ${ROWS}`} preserveAspectRatio="none">
-                        {legs.map((leg, i) => (
+                        {(ways[0] || []).map((leg, i) => (
                             <polyline key={i} className={classNames(styles.leg, LEG_CLASSES[i])} points={pathPoints(leg)}/>
                         ))}
-                        <polyline className={classNames(styles.leg, styles.legOne, styles.legSecondSpawn)} points={pathPoints(secondSpawnLeg)}/>
+                        {ways[1] && (
+                            <polyline className={classNames(styles.leg, styles.legOne, styles.legSecondSpawn)} points={pathPoints(ways[1][0])}/>
+                        )}
                         {rings.map((ring, i) => (
                             <circle key={i} className={classNames(styles.ring, ring.strong && styles.ringStrong)}
                                     cx={ring.at[0]} cy={ROWS - ring.at[1]} r={ring.radius}/>

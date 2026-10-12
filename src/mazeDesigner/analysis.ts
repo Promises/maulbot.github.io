@@ -1,4 +1,5 @@
 import {Cell, COLS, cornerInLane, Corner, cellIndex, footprint, isBuildable, ROUTE, ROWS, shortestPath, SPAWN_CELLS} from './lane';
+import {creepWays, LanePoint} from './pathing';
 import {RaceIndex} from './races';
 
 /** A tower in a design: where it stands and its forms, base first. */
@@ -15,6 +16,8 @@ export interface Analysis {
     legs: (Cell[] | null)[];
     /** The first leg from each spawn (to checkpoint 1); the rest of the way is the same for both. */
     spawnLegs: (Cell[] | null)[];
+    /** The way the creeps walk from each spawn (pathing.ts), as its three legs. */
+    creepWays: (LanePoint[] | null)[][];
     /** How many towers break rules 1, 2 and 5. */
     outside: number;
     overlaps: number;
@@ -36,7 +39,7 @@ export function analyse(towers: PlacedTower[], index: RaceIndex): Analysis {
     const problems: string[][] = towers.map(() => []);
     const overlapping = new Set<number>();
     const result: Analysis = {
-        problems, legs: [], spawnLegs: [], outside: 0, overlaps: 0, wrongRace: 0,
+        problems, legs: [], spawnLegs: [], creepWays: [], outside: 0, overlaps: 0, wrongRace: 0,
         gold: 0, unknownGold: 0, foodUsed: 0, foodMade: 0, usesFood: false,
     };
 
@@ -102,6 +105,7 @@ export function analyse(towers: PlacedTower[], index: RaceIndex): Analysis {
     result.overlaps = overlapping.size;
     result.legs = [0, 1, 2].map((k) => shortestPath(blocked, ROUTE[k], ROUTE[k + 1]));
     result.spawnLegs = SPAWN_CELLS.map((spawn, k) => (k ? shortestPath(blocked, spawn, ROUTE[1]) : result.legs[0]));
+    result.creepWays = creepWays(blocked);
     return result;
 }
 

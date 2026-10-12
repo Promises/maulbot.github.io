@@ -34,8 +34,15 @@ export const WAY_OUT = {col: 10, cols: 4};
 /** The columns the two spawns stand over (world x -160 and +160). */
 export const SPAWN_COLS = [9.5, 14.5];
 
+/**
+ * The cells the creeps start from: one creep of each row spawns over each, and both walk to
+ * checkpoint 1. The map's own path check starts from the first; the second is the same way after
+ * checkpoint 1.
+ */
+export const SPAWN_CELLS: Cell[] = [[9, 37], [14, 37]];
+
 /** The cells the map's path check runs between: spawn, checkpoint 1, checkpoint 2, exit. */
-export const ROUTE: Cell[] = [[9, 37], [12, 28], [12, 10], [12, 0]];
+export const ROUTE: Cell[] = [SPAWN_CELLS[0], [12, 28], [12, 10], [12, 0]];
 
 /** Where a tower's corner may be: its 2x2 footprint has to fit inside the lane. */
 export const CORNER_MIN: Corner = [1, 1];

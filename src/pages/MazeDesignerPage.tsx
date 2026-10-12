@@ -1,7 +1,7 @@
 import {ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 import styles from './MazeDesigner.module.scss';
 import {downloadBlob} from '../loadingScreen/download';
-import {analyse, fmt, mazeLength, overBudget, overFood, PlacedTower, refusals} from '../mazeDesigner/analysis';
+import {analyse, fmt, mazeLength, overBudget, overFood, PlacedTower, refusals, wayOpen, waysFromSpawns} from '../mazeDesigner/analysis';
 import {buildFileName, parseBuild, toBuild} from '../mazeDesigner/build';
 import classNames from '../mazeDesigner/classNames';
 import {Corner, PresetName, PRESETS} from '../mazeDesigner/lane';
@@ -121,7 +121,10 @@ const MazeDesignerPage: FC = () => {
     const chosen = useMemo(() => [raceA, raceB].filter(Boolean), [raceA, raceB]);
     const index = useMemo(() => indexRaces(races, chosen), [races, chosen]);
     const analysis = useMemo(() => analyse(towers, index), [towers, index]);
-    const {lengths, total} = mazeLength(analysis.legs);
+    // The way from each spawn; the map's own check (and so its maze length) uses the first
+    const ways = waysFromSpawns(analysis);
+    const measures = ways.map(mazeLength);
+    const {lengths, total} = measures[0];
 
     useEffect(() => {
         store(STORE, toBuild(name, [raceA, raceB], budget, towers, notes));
@@ -285,8 +288,8 @@ const MazeDesignerPage: FC = () => {
         }
     });
     const current = selected.length === 1 ? towers[selected[0]] : undefined;
-    const route = walkRoute(analysis.legs);
-    const walkCells = route ? routeLength(route) : 0;
+    const routes = ways.map(walkRoute);
+    const walkable = routes.every((route) => route !== null);
 
     const ghostWhy = armed && hover ? refusals(towers, {at: hover, chain: [armed]}, index, budget) : null;
     if (armed && hover) {
@@ -294,7 +297,7 @@ const MazeDesignerPage: FC = () => {
     }
 
     // The side panels
-    const closed = total === null;
+    const closed = !wayOpen(analysis);
     const goldKnown = analysis.unknownGold === 0;
     const over = overBudget(analysis, budget);
     const foodBad = overFood(analysis);
@@ -308,7 +311,9 @@ const MazeDesignerPage: FC = () => {
     ];
     const problems: string[] = [];
     if (closed) {
-        problems.push(`The way is closed on leg ${lengths.findIndex((length) => length === null) + 1}`);
+        problems.push(lengths.some((length) => length === null)
+            ? `The way is closed on leg ${lengths.findIndex((length) => length === null) + 1}`
+            : 'The way is closed from the second spawn');
     }
     analysis.problems.forEach((list, i) => list.forEach((problem) => problems.push(`Tower #${i + 1}: ${problem}`)));
 
@@ -501,7 +506,8 @@ const MazeDesignerPage: FC = () => {
                             say(`${kind.length} × ${index.byId.get(formOf(towers[i]))?.tower.name ?? formOf(towers[i])} selected`);
                         }}
                         onTowerRemove={(i) => remove([i])}
-                        walker={walking && route ? {route, cellsPerSecond: CREEP_SPEED / CELL_SIZE} : null}
+                        secondSpawnLeg={analysis.spawnLegs[1]}
+                        walkers={walking && walkable ? routes.map((route) => ({route: route!, cellsPerSecond: CREEP_SPEED / CELL_SIZE})) : []}
                     />
 
                     <div className={styles.panels}>
@@ -511,21 +517,26 @@ const MazeDesignerPage: FC = () => {
                                 {lengths.map((length, i) => (
                                     <span key={i} className={styles.leg}>
                                         <span className={classNames(styles.legSwatch, [styles.legOne, styles.legTwo, styles.legThree][i])}/>
-                                        {length ?? '—'}
+                                        {length ?? '—'}{i === 0 ? ` · ${measures[1].lengths[0] ?? '—'}` : ''}
                                     </span>
                                 ))}
                             </div>
-                            <span className={styles.hint}>Spawn → 1 → 2 → exit, 4-neighbour cells, as the map's anti-block measures it. Empty lane: 40.</span>
+                            <span className={styles.hint}>
+                                Spawn → 1 → 2 → exit, 4-neighbour cells, as the map's anti-block measures it (from the first
+                                spawn, the solid line; empty lane: 40). From the second, the dashed line: {measures[1].total ?? 'closed'}.
+                            </span>
                             <div className={styles.walk}>
-                                <button type="button" className={styles.smallButton} disabled={!route} aria-pressed={walking && !!route}
+                                <button type="button" className={styles.smallButton} disabled={!walkable} aria-pressed={walking && walkable}
                                         onClick={() => setWalking(!walking)}>
-                                    {walking && route ? 'Stop walking' : 'Walk the maze'}
+                                    {walking && walkable ? 'Stop walking' : 'Walk the maze'}
                                 </button>
                                 <span className={styles.hintSmall}>
-                                    {route ? `≈ ${walkSeconds(walkCells).toFixed(1)} s at speed ${CREEP_SPEED}` : 'The way is closed'}
+                                    {walkable
+                                        ? `≈ ${routes.map((route) => walkSeconds(routeLength(route!)).toFixed(1)).join(' / ')} s at speed ${CREEP_SPEED}`
+                                        : 'The way is closed'}
                                 </span>
                             </div>
-                            <span className={styles.hint}>A wave 34 Zergling's time along this way, start to exit. Real creeps cut corners, so they are a little quicker.</span>
+                            <span className={styles.hint}>A wave 34 Zergling's time from each spawn to the exit; one walks from each, as the creeps spawn in pairs. Real creeps cut corners, so they are a little quicker.</span>
                         </Panel>
 
                         <Panel title="Gold" aside={

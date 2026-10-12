@@ -1,4 +1,4 @@
-import {analyse, mazeLength, PlacedTower, refusals} from './analysis';
+import {analyse, mazeLength, PlacedTower, refusals, wayOpen, waysFromSpawns} from './analysis';
 import {buildFileName, parseBuild, toBuild} from './build';
 import {PRESETS} from './lane';
 import {BUNDLED_RACES, indexRaces, normaliseRaces, racesByTier} from './races';
@@ -131,4 +131,15 @@ test('the walker follows the whole way, and starts over at the end', () => {
     // A Zergling (330) walks 40 cells of 64 in about 7.8 s
     expect(walkSeconds(40)).toBeCloseTo(7.76, 2);
     expect(walkRoute(analyse(at(Array.from({length: 12}, (_, i) => [1 + 2 * i, 20] as [number, number])), orc).legs)).toBeNull();
+});
+
+test('the second spawn has its own way to checkpoint 1, and the same way after it', () => {
+    const empty = analyse([], orc);
+    // (14,37) to (12,28): 2 across, 9 down
+    expect(empty.spawnLegs[1]).toHaveLength(12);
+    expect(mazeLength(waysFromSpawns(empty)[1]).total).toBe(11 + 18 + 10);
+    expect(empty.spawnLegs[0]).toBe(empty.legs[0]);
+    const advanced = analyse(at(PRESETS.Advanced), orc);
+    expect(wayOpen(advanced)).toBe(true);
+    expect(waysFromSpawns(advanced)[1].slice(1)).toEqual(advanced.legs.slice(1));
 });

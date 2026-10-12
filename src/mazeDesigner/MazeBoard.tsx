@@ -27,12 +27,14 @@ export interface Ring {
 interface MazeBoardProps {
     towers: TowerView[];
     legs: (Cell[] | null)[];
+    /** The second spawn's way to checkpoint 1 (the first spawn's is legs[0]). */
+    secondSpawnLeg: Cell[] | null;
     rings: Ring[];
     /** The tower being placed, where it would go, and whether it may. */
     ghost: {at: Corner; ok: boolean} | null;
     placing: boolean;
-    /** The walker's route and speed, when it walks. */
-    walker: {route: Point[]; cellsPerSecond: number} | null;
+    /** A walker per spawn, with its route and speed, while they walk. */
+    walkers: {route: Point[]; cellsPerSecond: number}[];
     onHover: (corner: Corner | null) => void;
     onCornerClick: (corner: Corner) => void;
     /** A click on a tower; `additive` with shift held. */
@@ -67,7 +69,7 @@ const SPAWNS = SPAWN_COLS.map((col) => ({left: percent(col, COLS)}));
 const LEG_CLASSES = [styles.legOne, styles.legTwo, styles.legThree];
 
 const MazeBoard: FC<MazeBoardProps> = (
-    {towers, legs, rings, ghost, placing, walker, onHover, onCornerClick, onTowerClick, onTowerDoubleClick, onTowerRemove},
+    {towers, legs, secondSpawnLeg, rings, ghost, placing, walkers, onHover, onCornerClick, onTowerClick, onTowerDoubleClick, onTowerRemove},
 ) => {
     // The corner nearest the pointer, kept to where a tower's footprint fits
     const cornerAt = (event: MouseEvent<HTMLDivElement>): Corner => {
@@ -105,11 +107,12 @@ const MazeBoard: FC<MazeBoardProps> = (
                         {legs.map((leg, i) => (
                             <polyline key={i} className={classNames(styles.leg, LEG_CLASSES[i])} points={pathPoints(leg)}/>
                         ))}
+                        <polyline className={classNames(styles.leg, styles.legOne, styles.legSecondSpawn)} points={pathPoints(secondSpawnLeg)}/>
                         {rings.map((ring, i) => (
                             <circle key={i} className={classNames(styles.ring, ring.strong && styles.ringStrong)}
                                     cx={ring.at[0]} cy={ROWS - ring.at[1]} r={ring.radius}/>
                         ))}
-                        {walker && <Walker route={walker.route} cellsPerSecond={walker.cellsPerSecond}/>}
+                        {walkers.map((walker, i) => <Walker key={i} route={walker.route} cellsPerSecond={walker.cellsPerSecond}/>)}
                     </svg>
 
                     {towers.map((tower, i) => (

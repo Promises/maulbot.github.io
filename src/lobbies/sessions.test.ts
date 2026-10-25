@@ -39,7 +39,7 @@ describe('groupSessions', () => {
         const [session] = groupSessions([
             advert({first_seen: '2026-10-25T10:00:00Z', ended_at: '2026-10-25T10:01:30Z', final_players: 6}),
             advert({first_seen: '2026-10-25T10:01:33Z', ended_at: null, final_players: 4}),
-        ]);
+        ], Date.parse('2026-10-25T10:02:00Z'));
         expect(session).toMatchObject({openedAt: '2026-10-25T10:00:00Z', closedAt: null, players: 4});
     });
 
@@ -71,6 +71,14 @@ describe('groupSessions', () => {
         ]);
         expect(sessions).toHaveLength(1);
     });
+});
+
+test('an advert the tracker never saw end counts as closed once it has gone stale', () => {
+    const now = Date.parse('2026-10-25T12:00:00Z');
+    const [stale] = groupSessions([advert({first_seen: '2026-10-23T19:35:38Z', ended_at: null, final_players: 2})], now);
+    expect(stale).toMatchObject({closedAt: '2026-10-23T19:35:38Z', players: 2});
+    const [fresh] = groupSessions([advert({first_seen: '2026-10-25T11:50:00Z', ended_at: null})], now);
+    expect(fresh.closedAt).toBeNull();
 });
 
 test('isOpen covers the moment between two adverts', () => {

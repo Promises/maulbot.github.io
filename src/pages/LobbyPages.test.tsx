@@ -47,6 +47,18 @@ describe('lobby log', () => {
         expect(screen.getByText('No lobbies match these filters.')).toBeInTheDocument();
     });
 
+    it('reads back past quiet days to the last lobby, and stops after a quiet week', async () => {
+        const fetchMock = mockTracker({history: [
+            advert({name: 'Days ago', first_seen: minutesAgo(3.5 * 24 * 60), ended_at: minutesAgo(3.5 * 24 * 60 - 10)}),
+        ]});
+        await renderPage(<LobbyLogPage/>);
+        expect(await screen.findByText('Days ago')).toBeInTheDocument();
+        await act(async () => {});
+        expect(screen.getByText('1 lobbies')).toBeInTheDocument();
+        // Three quiet days, the fourth with the lobby, then a quiet week.
+        expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/our-map'))).toHaveLength(11);
+    });
+
     it('shows twenty lobbies, then twenty more', async () => {
         mockTracker({history: Array.from({length: 30}, (_, i) =>
             advert({name: `Lobby ${i}`, first_seen: minutesAgo(30 * (i + 1)), ended_at: minutesAgo(30 * (i + 1) - 10)}))});

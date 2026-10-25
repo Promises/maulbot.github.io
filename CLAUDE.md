@@ -69,8 +69,11 @@ API needs no auth and CORS is open.
   arrives within 8s, or the socket drops, `useLiveFeed` reads `GET /v1/lobbies?live=true` every 30s
   until the feed is back.
 - **REST** (`https://wc3.henning.tech/v1`, about 10 requests a second per IP): `/lobbies?live=true`
-  for the fallback, `/lobbies?map_like=reimagined&since=&until=&limit=1000` for the log's history
-  (open lobbies included), and `/health`.
+  for the fallback, `/our-map?since=&until=&limit=1000` for the log's history, and `/health`. The
+  history includes open lobbies and is read a day at a time; seven quiet days in a row end it. Use
+  `/our-map` rather than `map_like` on `/lobbies`, which makes the server scan every map's
+  compressed history. An advert the tracker never saw end counts as closed 25 minutes after it was
+  last seen, as the server reckons it.
 - `isOurs` keeps our map, which is listed as "Warcraft Maul: Reimagined …", "Warcraft Maul
   Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain "WarCraft Maul" maps are other
   people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified copy that the operator ruled is not

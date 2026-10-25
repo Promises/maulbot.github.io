@@ -20,22 +20,20 @@ test('fetchActiveLobbies reads every live lobby', async () => {
 });
 
 describe('fetchLobbyHistory', () => {
-    it('asks for the window and keeps only our map', async () => {
+    it('asks our-map for the window and checks again that each lobby is ours', async () => {
         const fetchMock = mockFetch({data: [
             row('Warcraft Maul: Reimagined Beta11 5.0.0', '2026-10-25T10:00:00Z'),
             row('Reimagined Footmen', '2026-10-25T09:00:00Z'),
         ]});
         const page = await fetchLobbyHistory({since: '2026-10-18T00:00:00Z', until: '2026-10-25T00:00:00Z'});
         const url = new URL((fetchMock.mock.calls[0] as unknown[])[0] as string);
-        expect(url.pathname).toBe('/v1/lobbies');
+        expect(url.pathname).toBe('/v1/our-map');
         expect(Object.fromEntries(url.searchParams)).toEqual({
-            map_like: 'reimagined',
             limit: String(HISTORY_PAGE_SIZE),
             since: '2026-10-18T00:00:00Z',
             until: '2026-10-25T00:00:00Z',
         });
         expect(page.adverts.map((a) => a.map_name)).toEqual(['Warcraft Maul: Reimagined Beta11 5.0.0']);
-        expect(page.listed).toBe(2);
         expect(page.continueUntil).toBeNull();
     });
 

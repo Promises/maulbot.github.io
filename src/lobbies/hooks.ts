@@ -18,8 +18,11 @@ const FEED_WAIT_MS = 8 * 1000;
 // How often "open for" and "updated … ago" move on, and ended adverts are let go.
 const TICK_MS = 5 * 1000;
 
-// The history is asked for a week at a time, the API's own default span.
-const HISTORY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+// The history is asked for a day at a time, the API's own default span for our map.
+const HISTORY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+// This many days in a row without a lobby on our map end the history.
+const QUIET_DAYS_TO_END = 7;
 
 const iso = (time: number) => new Date(time).toISOString();
 
@@ -163,12 +166,14 @@ export function useLiveLobbies(): LiveLobbiesState {
 }
 
 interface HistoryCursor extends HistoryWindow {
-    /** True for the first page of a week, so an empty one can end the history. */
+    /** True for the first page of a day, false for the rest of a day that held more than a page. */
     fresh: boolean;
+    /** Days in a row before this one that had no lobby on our map. */
+    quietDays: number;
 }
 
-function weekBefore(until: number): HistoryCursor {
-    return {since: iso(until - HISTORY_WINDOW_MS), until: iso(until), fresh: true};
+function dayBefore(until: number, quietDays: number): HistoryCursor {
+    return {since: iso(until - HISTORY_WINDOW_MS), until: iso(until), fresh: true, quietDays};
 }
 
 export interface LobbyLogState {
@@ -182,8 +187,8 @@ export interface LobbyLogState {
 }
 
 /**
- * Our map's lobby history, read a page at a time going back: the newest page up front, older
- * ones through `loadOlder`. A week with no adverts at all ends it.
+ * Our map's lobby history, read a day at a time going back: the last day up front, older ones
+ * through `loadOlder`. A week of days without a lobby ends it.
  */
 export function useLobbyLog(): LobbyLogState {
     const [status, setStatus] = useState<LobbyStatus>('loading');
@@ -199,16 +204,15 @@ export function useLobbyLog(): LobbyLogState {
         }
         setAdverts((current) => [...current, ...page.adverts]);
         if (page.continueUntil) {
-            setCursor({since: from.since, until: page.continueUntil, fresh: false});
-        } else if (from.fresh && page.listed === 0) {
-            setCursor(null);
-        } else {
-            setCursor(weekBefore(Date.parse(from.since)));
+            setCursor({...from, until: page.continueUntil, fresh: false});
+            return;
         }
+        const quietDays = from.fresh && page.adverts.length === 0 ? from.quietDays + 1 : 0;
+        setCursor(quietDays >= QUIET_DAYS_TO_END ? null : dayBefore(Date.parse(from.since), quietDays));
     }, [mounted]);
 
     useEffect(() => {
-        loadPage(weekBefore(Date.now()))
+        loadPage(dayBefore(Date.now(), 0))
             .then(() => mounted.current && setStatus('ready'))
             .catch(() => mounted.current && setStatus('unavailable'));
     }, [loadPage, mounted]);

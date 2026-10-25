@@ -64,7 +64,8 @@ Blizzard has no lobby API, and the tracker's websocket is LAN-only, so the pages
 - `GET /lobbies?live=true`: every open lobby on every map. `GET /lobbies?map_like=reimagined&since=&until=&limit=1000`:
   the history, open lobbies included. `isOurs` then keeps our map, which is listed as "Warcraft Maul:
   Reimagined …", "Warcraft Maul Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain
-  "WarCraft Maul" maps are other people's. `GET /health` tells "no lobbies" apart from "tracker down".
+  "WarCraft Maul" maps are other people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified
+  copy that the operator ruled is not ours, so the site never advertises or highlights it. `GET /health` tells "no lobbies" apart from "tracker down".
 - WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows.
   `sessions.ts` joins them by host, name, map file and region when one starts within 5 minutes of
   the last ending. Tracker restarts leave gaps of a minute or two.

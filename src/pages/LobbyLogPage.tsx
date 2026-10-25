@@ -60,8 +60,7 @@ const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
     );
 };
 
-// "Beta11 5.0.0" before "Beta9 5.0.0" before "4.4.3"; names without a number, like a player's
-// "fixed" copy, go last.
+// "Beta11 5.0.0" before "Beta9 5.0.0" before "4.4.3"; names without a version number go last.
 function newestVersionFirst(a: string, b: string): number {
     const numbered = (version: string) => /\d/.test(version);
     if (numbered(a) !== numbered(b)) {

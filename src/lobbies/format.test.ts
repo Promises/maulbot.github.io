@@ -7,7 +7,7 @@ describe('isOurs', () => {
         ['Warcraft Maul: Reimagined Beta11 5.0.0', 'Maps/Warcraft Maul Reimagined Beta11 5.0.0.w3x'],
         ['Warcraft Maul Reimagined Beta11 5.0.0.w3x', 'Maps/Download/Warcraft Maul Reimagined Beta11 5.0.0.w3x'],
         ['WarcraftMaulReimagined-Beta7-5.0.0.w3x', null],
-        [null, 'Maps/Download/Warcraft_Maul_Reimagined_fixed.w3x'],
+        [null, 'Maps/Warcraft Maul Reimagined 4.4.3.w3x'],
     ])('claims %s', (name, file) => {
         expect(isOurs(map(name, file))).toBe(true);
     });
@@ -16,6 +16,7 @@ describe('isOurs', () => {
         ['WarCraft Maul 8.2.w3x'],
         ['WarCraft Maul NextGen v2.65-p.w3x'],
         ['Wintermaul_Chaos_Mod_0.66.3.w3x'],
+        ['Warcraft_Maul_Reimagined_fixed.w3x'],
         [null],
     ])('leaves out %s', (name) => {
         expect(isOurs(map(name, name && `Maps/Download/${name}`))).toBe(false);

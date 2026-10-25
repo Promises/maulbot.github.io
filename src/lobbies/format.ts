@@ -3,13 +3,18 @@ import {LobbyAdvert} from './types';
 type MapRef = Pick<LobbyAdvert, 'map_name' | 'map_file'>;
 
 // Our map under every spelling seen in the list: "Warcraft Maul: Reimagined Beta11 5.0.0",
-// "Warcraft Maul Reimagined Beta11 5.0.0.w3x", "WarcraftMaulReimagined-Beta7-5.0.0.w3x" and
-// "Warcraft_Maul_Reimagined_fixed.w3x". Older maps that are only called "WarCraft Maul" are not ours.
+// "Warcraft Maul Reimagined Beta11 5.0.0.w3x" and "WarcraftMaulReimagined-Beta7-5.0.0.w3x".
+// Older maps that are only called "WarCraft Maul" are not ours.
 const OUR_MAP = /warcraft[\s_]*maul[\s:_-]*reimagined/i;
 
-/** Whether the lobby is on our map. */
+// Modified copies going round under our map's name, which the operator ruled are not ours to
+// point players at.
+const UNOFFICIAL_COPY = /warcraft[\s_]*maul[\s:_-]*reimagined[\s_-]*fixed/i;
+
+/** Whether the lobby is on our map, and not on an unofficial copy of it. */
 export function isOurs(lobby: MapRef): boolean {
-    return OUR_MAP.test(lobby.map_name ?? '') || OUR_MAP.test(lobby.map_file ?? '');
+    const names = [lobby.map_name ?? '', lobby.map_file ?? ''];
+    return names.some((name) => OUR_MAP.test(name)) && !names.some((name) => UNOFFICIAL_COPY.test(name));
 }
 
 function mapLabel(lobby: MapRef): string {

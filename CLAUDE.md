@@ -41,7 +41,9 @@ deprecation and stale caniuse-lite warnings are harmless.
   header and footer, Changelog, Credits, the Discord sections and SourceSection.
 - `src/content.ts`: content and config. It holds `MAP_REPO`, the bundled-map fallback, the Discord
   invite, the repo list, credits and `GAME_STATS`. `GAME_STATS` is hand-written and drifts from the
-  map, so keep it honest.
+  map, so keep it honest. "Tower races" counts what the map's race picker offers in its normal tabs:
+  races that are enabled, not random-only (the Loot Boxer), and in the Beginner, Intermediate or
+  Advanced tier. That is fewer than the races marked `enabled` in `races.json`.
 - `src/github/`: runtime GitHub client with tests.
 - `src/mazeDesigner/`: grid, A* pathing (`pathing.ts`), analysis, walker. `races.json` is generated.
 - `src/loadingScreen/`: renders a loading screen and encodes it as DXT5 DDS for the map.

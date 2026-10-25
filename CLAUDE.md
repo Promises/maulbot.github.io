@@ -64,7 +64,10 @@ Visitors' browsers read the map repo at runtime, unauthenticated, so each visito
 - **Changelog**: built from the map repo's `Quests/*.md`, one file per version.
 - **Maze Designer data** is a build-time snapshot. After the map's races or towers change, run
   `node scripts/maze-designer-data.js <path to a Warcraft-Maul-Reimagined checkout>` and commit the
-  regenerated `src/mazeDesigner/races.json`. It records the map commit it came from.
+  regenerated `src/mazeDesigner/races.json`. It records the map commit it came from. The map keeps
+  its units and items in `mapdata/*.json` and builds the World Editor binaries from them, so the
+  checkout needs its `npm install`, or `node scripts/objdata-json.js import` run in it. The script
+  refuses to write a `races.json` with no towers.
 
 ## Checking a deploy
 The live bundle's TS sources can be compared with a local build through the source maps on

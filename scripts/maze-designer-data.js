@@ -5,6 +5,9 @@
  * Run it again whenever the map's towers change:
  *
  *     node scripts/maze-designer-data.js <path to the Warcraft-Maul-Reimagined checkout>
+ *
+ * The checkout needs its object data built from mapdata/*.json, which its npm install does
+ * (or run `node scripts/objdata-json.js import` there). Without it race-data.js finds no towers.
  */
 const {execFileSync} = require('child_process');
 const fs = require('fs');
@@ -43,8 +46,14 @@ const out = {
     })),
 };
 
+const towers = out.races.reduce((n, race) => n + race.towers.length, 0);
+if (towers === 0) {
+    console.error('race-data.js found no towers: build the object data in the map checkout first '
+        + '(node scripts/objdata-json.js import). races.json was left as it was.');
+    process.exit(1);
+}
+
 const file = path.join(__dirname, '..', 'src', 'mazeDesigner', 'races.json');
 fs.mkdirSync(path.dirname(file), {recursive: true});
 fs.writeFileSync(file, JSON.stringify(out) + '\n');
-const towers = out.races.reduce((n, race) => n + race.towers.length, 0);
 console.log(`${path.relative(process.cwd(), file)}: ${out.races.length} races, ${towers} towers, map ${commit}`);

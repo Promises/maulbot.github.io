@@ -4,6 +4,7 @@ import styles from './Hero.module.scss';
 import {GAME_STATS, MAP_RELEASES_URL, MAP_REPO} from '../content';
 import {useLatestMapRelease} from '../github/hooks';
 import {ROUTES} from '../routes';
+import JoinPanel from './JoinPanel';
 
 const Hero: FC = () => {
     const {status, release} = useLatestMapRelease(MAP_REPO);
@@ -45,6 +46,8 @@ const Hero: FC = () => {
                 </a>
                 <Link className={styles.patchNotes} to={ROUTES.changelog}>Patch notes</Link>
             </div>
+
+            <JoinPanel/>
 
             <div className={styles.stats}>
                 {GAME_STATS.map(({value, label}) => (

@@ -1,0 +1,201 @@
+@use '../styles/tokens' as *;
+
+.panel {
+  @include wc3-panel(22px);
+  box-sizing: border-box;
+  width: min(620px, 100%);
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-family: $font-display;
+  font-size: 26px;
+  font-weight: 400;
+  color: $colour-heading;
+  text-shadow: 0 2px 0 $colour-edge;
+}
+
+.live {
+  @include label(11px, 0.18em);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $colour-frost;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $colour-started;
+  box-shadow: 0 0 8px rgba(127, 211, 138, 0.9);
+}
+
+.label {
+  @include label(10.5px, 0.2em);
+  color: $colour-text-faint;
+}
+
+.card {
+  @include wc3-inset(14px);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-family: $font-label;
+  font-weight: 600;
+  font-size: 19px;
+  color: #f3e6c2;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+  overflow-wrap: anywhere;
+}
+
+.copy {
+  @include label(11px, 0.14em);
+  @include wc3-button(12px);
+  min-height: 14px;
+  padding: 0 8px;
+}
+
+.players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.playersRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.count {
+  font-family: $font-label;
+  font-weight: 600;
+  font-size: 13px;
+  color: $colour-text-label;
+}
+
+.countValue {
+  font-family: $font-display;
+  font-size: 22px;
+  color: $colour-gold;
+}
+
+.slots {
+  display: grid;
+  gap: 4px;
+}
+
+%slot {
+  display: block;
+  height: 12px;
+}
+
+.slotTaken {
+  @extend %slot;
+  background: linear-gradient(#bfe6fb, #5aa8d8);
+  box-shadow: 0 0 8px rgba(95, 180, 255, 0.55), inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.slotOpen {
+  @extend %slot;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(200, 165, 90, 0.12);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 1px 0 rgba(200, 165, 90, 0.12);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metaValue {
+  font-size: 15.5px;
+  color: $colour-name;
+}
+
+.tag {
+  color: $colour-text-ghost;
+}
+
+.hint,
+.emptyText {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: $colour-text-label;
+  text-wrap: pretty;
+}
+
+.status {
+  @include label(11.5px, 0.14em);
+  margin: 0;
+  color: $colour-text-faint;
+}
+
+.empty {
+  @include wc3-inset(14px);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emptyTitle {
+  font-family: $font-label;
+  font-weight: 600;
+  font-size: 15px;
+  color: $colour-name;
+}
+
+.emptyText {
+  font-size: 15px;
+}
+
+.logLink {
+  @include label(11.5px, 0.16em);
+  align-self: flex-start;
+  color: $colour-gold-dim;
+}

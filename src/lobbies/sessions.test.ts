@@ -39,7 +39,7 @@ describe('groupSessions', () => {
         const [session] = groupSessions([
             advert({first_seen: '2026-10-25T10:00:00Z', ended_at: '2026-10-25T10:01:30Z', final_players: 6}),
             advert({first_seen: '2026-10-25T10:01:33Z', ended_at: null, final_players: 4}),
-        ], Date.parse('2026-10-25T10:02:00Z'));
+        ], {now: Date.parse('2026-10-25T10:02:00Z')});
         expect(session).toMatchObject({openedAt: '2026-10-25T10:00:00Z', closedAt: null, players: 4});
     });
 
@@ -73,14 +73,15 @@ describe('groupSessions', () => {
     });
 });
 
-test('an advert the tracker never saw end counts as closed once it has gone stale', () => {
-    const now = Date.parse('2026-10-25T12:00:00Z');
-    const [stale] = groupSessions([advert({first_seen: '2026-10-23T19:35:38Z', ended_at: null, final_players: 2})], now);
-    expect(stale).toMatchObject({closedAt: '2026-10-23T19:35:38Z', players: 2});
-    const [fresh] = groupSessions([advert({first_seen: '2026-10-25T11:50:00Z', ended_at: null})], now);
-    expect(fresh.closedAt).toBeNull();
-    const [lost] = groupSessions([advert({first_seen: '2026-10-25T11:50:00Z', ended_at: null, state: 'lost'})], now);
-    expect(lost.closedAt).toBe('2026-10-25T11:50:00Z');
+test('an advert the tracker never saw end closes when it was last seen, once lost', () => {
+    const now = Date.parse('2026-10-25T16:00:00Z');
+    const quiet = advert({first_seen: '2026-10-25T15:20:00Z', ended_at: null});
+    // Quiet for 40 minutes: still open within a 60-minute live window, closed within a 25-minute one.
+    expect(groupSessions([quiet], {now, liveWindowMs: 60 * 60 * 1000})[0].closedAt).toBeNull();
+    expect(groupSessions([quiet], {now, liveWindowMs: 25 * 60 * 1000})[0].closedAt).toBe('2026-10-25T15:20:00Z');
+    // Without a window, only the tracker's verdict closes it.
+    expect(groupSessions([quiet], {now})[0].closedAt).toBeNull();
+    expect(groupSessions([{...quiet, state: 'lost'}], {now})[0].closedAt).toBe('2026-10-25T15:20:00Z');
 });
 
 test('isOpen covers the moment between two adverts', () => {

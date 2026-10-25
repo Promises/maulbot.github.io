@@ -40,6 +40,8 @@ export interface LobbyAdvert {
 export interface TrackerHealth {
     status: string;
     current_live_lobbies?: number;
+    /** How long a lobby may go without news and still count as open, in seconds. */
+    live_window_s?: number;
 }
 
 /** A lobby in a live-feed event: the advert with `players`, when the event has a count, for `final_players`. */

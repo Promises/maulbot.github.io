@@ -73,7 +73,9 @@ API needs no auth and CORS is open.
   history includes open lobbies and is read a day at a time; seven quiet days in a row end it. Use
   `/our-map` rather than `map_like` on `/lobbies`, which makes the server scan every map's
   compressed history. An advert the tracker never saw end counts as closed at its `last_seen` once the
-  API's derived `state` says `lost`, or 25 minutes (the tracker's live window) after it was last seen.
+  API's derived `state` says `lost`. On a page left open, it also closes once it passes
+  `live_window_s` from `/v1/health` since it was last seen. Never hard-code that window: a quiet
+  lobby's `last_seen` stands still, and the tracker sets the window (60 min since 2026-10-25).
 - `isOurs` keeps our map, which is listed as "Warcraft Maul: Reimagined …", "Warcraft Maul
   Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain "WarCraft Maul" maps are other
   people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified copy that the operator ruled is not

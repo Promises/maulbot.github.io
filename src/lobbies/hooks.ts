@@ -195,6 +195,7 @@ export function useLobbyLog(): LobbyLogState {
     const [adverts, setAdverts] = useState<LobbyAdvert[]>([]);
     const [cursor, setCursor] = useState<HistoryCursor | null>(null);
     const [loadingOlder, setLoadingOlder] = useState(false);
+    const [liveWindowMs, setLiveWindowMs] = useState<number | undefined>(undefined);
     const mounted = useMounted();
 
     const loadPage = useCallback(async (from: HistoryCursor) => {
@@ -215,6 +216,10 @@ export function useLobbyLog(): LobbyLogState {
         loadPage(dayBefore(Date.now(), 0))
             .then(() => mounted.current && setStatus('ready'))
             .catch(() => mounted.current && setStatus('unavailable'));
+        // The tracker's live window, for lobbies that go past it while the page is open.
+        fetchHealth()
+            .then(({live_window_s: seconds}) => mounted.current && seconds && setLiveWindowMs(seconds * 1000))
+            .catch(() => undefined);
     }, [loadPage, mounted]);
 
     const loadOlder = useCallback(() => {
@@ -227,7 +232,7 @@ export function useLobbyLog(): LobbyLogState {
             .finally(() => mounted.current && setLoadingOlder(false));
     }, [cursor, loadingOlder, status, loadPage, mounted]);
 
-    const lobbies = useMemo(() => groupSessions(adverts), [adverts]);
+    const lobbies = useMemo(() => groupSessions(adverts, {now: Date.now(), liveWindowMs}), [adverts, liveWindowMs]);
     return {status, lobbies, hasOlder: cursor !== null, loadingOlder, loadOlder};
 }
 

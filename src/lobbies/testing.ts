@@ -32,7 +32,7 @@ interface TrackerData {
 }
 
 /** Answers the tracker's endpoints with the given data: history for any window, then nothing older. */
-export function mockTracker({history = [], live = [], health = {status: 'ok', current_live_lobbies: 100}}: TrackerData) {
+export function mockTracker({history = [], live = [], health = {status: 'ok', current_live_lobbies: 100, live_window_s: 3600}}: TrackerData) {
     const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
         const url = new URL(String(input));
         let body: unknown;

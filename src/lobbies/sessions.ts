@@ -15,27 +15,34 @@ export const RELIST_GAP_MS = 5 * 60 * 1000;
  */
 export const RELIST_GRACE_MS = 20 * 1000;
 
-/**
- * How long an advert can go unseen and still be open, as the tracker itself reckons it (its live
- * window). An advert the tracker never saw end (its client restarted at the wrong moment) counts as
- * closed when it was last seen, once the tracker calls it `lost` or this long has passed since.
- */
-export const STALE_OPEN_MS = 25 * 60 * 1000;
-
 const keyOf = (advert: LobbyAdvert) => [advert.host, advert.name, advert.map_file, advert.region].join('\u0000');
 
-/** When the advert left the list: its end, or for one that never ended but was lost, when it was last seen. */
-function endOf(advert: LobbyAdvert, now: number): string | null {
+export interface GroupingClock {
+    now: number;
+    /**
+     * The tracker's live window: how long a lobby may go without news and still be open. A quiet
+     * lobby's `last_seen` stands still, so this is the tracker's to say, not a fixed figure.
+     */
+    liveWindowMs?: number;
+}
+
+/**
+ * When the advert left the list: its end, or for one the tracker never saw end (its client
+ * restarted at the wrong moment), when it was last seen. The tracker calls such an advert `lost`
+ * when it was read; one that went past the live window since then counts as lost too.
+ */
+function endOf(advert: LobbyAdvert, {now, liveWindowMs}: GroupingClock): string | null {
     if (advert.ended_at) {
         return advert.ended_at;
     }
-    const lost = advert.state === 'lost' || now - Date.parse(advert.last_seen) > STALE_OPEN_MS;
+    const lost = advert.state === 'lost'
+        || (liveWindowMs !== undefined && now - Date.parse(advert.last_seen) > liveWindowMs);
     return lost ? advert.last_seen : null;
 }
 
 /** Whether `next` is `last` listed again: it came while `last` was open, or soon after it left. */
-function relists(last: LobbyAdvert, next: LobbyAdvert, now: number): boolean {
-    const end = endOf(last, now);
+function relists(last: LobbyAdvert, next: LobbyAdvert, clock: GroupingClock): boolean {
+    const end = endOf(last, clock);
     return end === null || Date.parse(next.first_seen) - Date.parse(end) <= RELIST_GAP_MS;
 }
 
@@ -43,7 +50,7 @@ function relists(last: LobbyAdvert, next: LobbyAdvert, now: number): boolean {
  * Joins adverts into the lobbies they belong to, newest first. Adverts without a name or host
  * (captured before WC3 sent the details) are left out, and an advert seen twice counts once.
  */
-export function groupSessions(adverts: LobbyAdvert[], now: number = Date.now()): LobbySession[] {
+export function groupSessions(adverts: LobbyAdvert[], clock: GroupingClock = {now: Date.now()}): LobbySession[] {
     const unique = new Map<string, LobbyAdvert>();
     for (const advert of adverts) {
         if (advert.name && advert.host) {
@@ -58,7 +65,7 @@ export function groupSessions(adverts: LobbyAdvert[], now: number = Date.now()):
         const key = keyOf(advert);
         const chain = openChains.get(key);
         const last = chain?.[chain.length - 1];
-        if (chain && last && relists(last, advert, now)) {
+        if (chain && last && relists(last, advert, clock)) {
             chain.push(advert);
         } else {
             const fresh = [advert];
@@ -70,7 +77,7 @@ export function groupSessions(adverts: LobbyAdvert[], now: number = Date.now()):
     return chains
         .map((chain): LobbySession => {
             const newest = chain[chain.length - 1];
-            const closedAt = endOf(newest, now);
+            const closedAt = endOf(newest, clock);
             return {
                 advert: newest,
                 openedAt: chain[0].first_seen,

@@ -28,9 +28,9 @@ test('a re-list keeps one lobby, counted from its first advert, with the new adv
 test('an ended advert stays open for a moment, then goes', () => {
     const lobby = advert({first_seen: '2026-10-25T10:00:00Z'});
     const set = applyEvent(fromSnapshot([lobby]), 'ended', {...lobby, ended_at: '2026-10-25T10:05:00Z'});
-    expect(openLobbies(set, at('2026-10-25T10:05:02Z'))).toHaveLength(1);
-    expect(openLobbies(set, at('2026-10-25T10:05:04Z'))).toHaveLength(0);
-    expect(prune(set, at('2026-10-25T10:05:04Z')).size).toBe(0);
+    expect(openLobbies(set, at('2026-10-25T10:05:08Z'))).toHaveLength(1);
+    expect(openLobbies(set, at('2026-10-25T10:05:11Z'))).toHaveLength(0);
+    expect(prune(set, at('2026-10-25T10:05:11Z')).size).toBe(0);
 });
 
 test('prune hands back the same set when nothing has ended', () => {

@@ -80,8 +80,9 @@ API needs no auth and CORS is open.
   ours, so the site never advertises or highlights it. The filter runs client-side as well as on the server.
 - WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows. Open
   lobbies carry `session_first_seen`, the tracker's start of the whole chain, and "open for" uses
-  it. On the feed, a re-list's new advert comes with or before the old one's `ended`, so an ended
-  advert lingers only 3s. For the history, `sessions.ts` joins rows by host, name, map file and
+  it. On the feed an ended advert still counts as open for 10s. Our lobby's re-list gaps run to
+  about 5s, plus up to 3s of batching on the tracker, and anything shorter makes the join panel's
+  card blink out. For the history, `sessions.ts` joins rows by host, name, map file and
   region when one starts within 5 minutes of the last ending; tracker restarts leave gaps of a
   minute or two.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions

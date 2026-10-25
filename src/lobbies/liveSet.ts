@@ -1,11 +1,12 @@
 import {FeedLobby, LobbyAdvert, LobbySession} from './types';
 
 /**
- * How long an ended advert still counts as an open lobby. On the feed a re-list's new advert comes
- * with or before the old one's end, at worst one batch (about three seconds) later; any longer and
- * the many lobbies that really did close would linger in the list.
+ * How long an ended advert still counts as an open lobby. Our lobby's re-list gaps (one advert's
+ * end to the next one's first sighting) run to about five seconds (median 2.7s, longest 4.7s over
+ * three hours), and the tracker ships in batches up to three seconds apart. Shorter, and the join
+ * panel's card blinks out between adverts; lobbies that really closed linger this long instead.
  */
-export const FEED_RELIST_GRACE_MS = 3 * 1000;
+export const FEED_RELIST_GRACE_MS = 10 * 1000;
 
 /** The open lobbies' adverts by id, as a snapshot and the events after it describe them. */
 export type LiveSet = ReadonlyMap<string, LobbyAdvert>;

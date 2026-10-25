@@ -1,14 +1,18 @@
 import {FC} from 'react';
 import {Link} from 'react-router-dom';
 import styles from './Hero.module.scss';
-import {BUNDLED_MAP_URL, BUNDLED_MAP_VERSION, GAME_STATS, MAP_REPO} from '../content';
+import {GAME_STATS, MAP_RELEASES_URL, MAP_REPO} from '../content';
 import {useLatestMapRelease} from '../github/hooks';
 import {ROUTES} from '../routes';
 
 const Hero: FC = () => {
-    const {release} = useLatestMapRelease(MAP_REPO);
-    const version = release?.version ?? BUNDLED_MAP_VERSION;
-    const downloadUrl = release?.downloadUrl ?? BUNDLED_MAP_URL;
+    const {status, release} = useLatestMapRelease(MAP_REPO);
+    // Without a release (still loading, none published, or GitHub unreachable) the button opens
+    // the releases page rather than offering a copy of the map that would go stale.
+    const downloadUrl = release?.downloadUrl ?? MAP_RELEASES_URL;
+    const hint = release || status === 'loading'
+        ? '.w3x · drop into your Warcraft III maps folder'
+        : 'Pick the newest .w3x on GitHub';
 
     return (
         <section id="download" className={styles.hero}>
@@ -35,9 +39,9 @@ const Hero: FC = () => {
                 <a className={styles.download} href={downloadUrl}>
                     <span className={styles.downloadText}>
                         <span className={styles.downloadTitle}>Download the map</span>
-                        <span className={styles.downloadHint}>.w3x · drop into your Warcraft III maps folder</span>
+                        <span className={styles.downloadHint}>{hint}</span>
                     </span>
-                    <span className={styles.version}>{version}</span>
+                    {release && <span className={styles.version}>{release.version}</span>}
                 </a>
                 <Link className={styles.patchNotes} to={ROUTES.changelog}>Patch notes</Link>
             </div>

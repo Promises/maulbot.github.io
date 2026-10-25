@@ -55,8 +55,12 @@ Visitors' browsers read the map repo at runtime, unauthenticated, so each visito
   `.w3x` asset. It reads the release list rather than `/releases/latest` because betas are flagged
   prerelease. The site does no version comparison: whatever GitHub lists first is what players get.
   So a stale download is fixed by a map release, not by a site deploy.
-- **Fallback**: while the request is loading, or if it fails (rate limit, outage), the button shows
-  the bundled `public/Warcraft_Maul_Reimagined_<BUNDLED_MAP_VERSION>.w3x`.
+- **Fallback**: while the request is loading, when no release has a `.w3x`, or when the request
+  fails (rate limit, outage), the button links to the map repo's releases page and shows no
+  version. That way the fallback can't go stale.
+- `public/Warcraft_Maul_Reimagined_v4.4.3.w3x` stays deployed only so old direct links to it still
+  work, by the operator's decision. Nothing in the site links to it. Don't reference it, update it,
+  or delete it.
 - **Changelog**: built from the map repo's `Quests/*.md`, one file per version.
 - **Maze Designer data** is a build-time snapshot. After the map's races or towers change, run
   `node scripts/maze-designer-data.js <path to a Warcraft-Maul-Reimagined checkout>` and commit the

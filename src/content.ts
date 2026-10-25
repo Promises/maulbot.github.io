@@ -4,9 +4,8 @@ import {GithubRepo} from './github/types';
 export const MAP_REPO: GithubRepo = {owner: 'Promises', name: 'Warcraft-Maul-Reimagined'};
 export const MAP_REPO_URL = `https://github.com/${MAP_REPO.owner}/${MAP_REPO.name}`;
 
-/** Copy of the map shipped with the site, used until GitHub has a newer release. */
-export const BUNDLED_MAP_VERSION = 'v4.4.3';
-export const BUNDLED_MAP_URL = `/Warcraft_Maul_Reimagined_${BUNDLED_MAP_VERSION}.w3x`;
+/** Where the download button points while GitHub cannot name the newest release. */
+export const MAP_RELEASES_URL = `${MAP_REPO_URL}/releases`;
 
 /** How many versions of patch notes to fetch before offering "show older". */
 export const INITIAL_PATCH_NOTE_COUNT = 5;

@@ -26,8 +26,9 @@ deprecation and stale caniuse-lite warnings are harmless.
 - **Every deploy needs the operator's explicit go-ahead.** Pushes to `master` also need the operator's word.
   Build and test locally before a deploy, then check the live site afterwards.
 - `public/CNAME` (`warcraftmaul.com`) is copied into `build/` and becomes the live custom domain.
-  A deploy without it drops the domain. The root `CNAME` and the `homepage` field in `package.json`
-  say `maulbot.com`. That mismatch is unresolved and is the operator's call, so don't reconcile it on your own.
+  A deploy without it drops the domain. `warcraftmaul.com` is canonical, and the root `CNAME` and
+  the `homepage` field in `package.json` say the same. `maulbot.com` is a redirect handled in
+  Cloudflare on the operator's side, not in this repo, so don't try to set it up from here.
 - Styling: Sass CSS Modules (`*.module.scss`) built on `src/styles/_tokens.scss` and, for the
   full-screen tools, `src/styles/_tool.scss`. No utility-class frameworks.
 - Commit as the normal git identity, with no Claude attribution lines.

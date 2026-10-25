@@ -1,7 +1,7 @@
 {
   "name": "maulbot",
   "version": "0.1.0",
-  "homepage": "https://maulbot.com",
+  "homepage": "https://warcraftmaul.com",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",

@@ -79,6 +79,8 @@ test('an advert the tracker never saw end counts as closed once it has gone stal
     expect(stale).toMatchObject({closedAt: '2026-10-23T19:35:38Z', players: 2});
     const [fresh] = groupSessions([advert({first_seen: '2026-10-25T11:50:00Z', ended_at: null})], now);
     expect(fresh.closedAt).toBeNull();
+    const [lost] = groupSessions([advert({first_seen: '2026-10-25T11:50:00Z', ended_at: null, state: 'lost'})], now);
+    expect(lost.closedAt).toBe('2026-10-25T11:50:00Z');
 });
 
 test('isOpen covers the moment between two adverts', () => {

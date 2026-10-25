@@ -28,6 +28,11 @@ export interface LobbyAdvert {
      * tracker joins them up. Absent on history rows.
      */
     session_first_seen?: string | null;
+    /**
+     * The tracker's verdict when it was read: `live`, `ended`, or `lost` (never seen to end, and not
+     * seen since its live window passed, with `last_seen` the last time it was listed).
+     */
+    state?: 'live' | 'ended' | 'lost';
 }
 
 /** "ok", "stale" (no news from Battle.net for a while), "no_live_lobbies" or "db_unavailable". */

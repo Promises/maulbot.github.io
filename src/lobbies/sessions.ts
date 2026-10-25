@@ -15,20 +15,21 @@ export const RELIST_GAP_MS = 5 * 60 * 1000;
 export const RELIST_GRACE_MS = 20 * 1000;
 
 /**
- * How long an advert can go unseen and still be open, as the tracker itself reckons it. An advert
- * the tracker never saw end (its client restarted at the wrong moment) counts as closed this long
- * after it was last seen, and from then on as closed when it was last seen.
+ * How long an advert can go unseen and still be open, as the tracker itself reckons it (its live
+ * window). An advert the tracker never saw end (its client restarted at the wrong moment) counts as
+ * closed when it was last seen, once the tracker calls it `lost` or this long has passed since.
  */
 export const STALE_OPEN_MS = 25 * 60 * 1000;
 
 const keyOf = (advert: LobbyAdvert) => [advert.host, advert.name, advert.map_file, advert.region].join('\u0000');
 
-/** When the advert left the list: its end, or for one that never ended but went stale, when it was last seen. */
+/** When the advert left the list: its end, or for one that never ended but was lost, when it was last seen. */
 function endOf(advert: LobbyAdvert, now: number): string | null {
     if (advert.ended_at) {
         return advert.ended_at;
     }
-    return now - Date.parse(advert.last_seen) > STALE_OPEN_MS ? advert.last_seen : null;
+    const lost = advert.state === 'lost' || now - Date.parse(advert.last_seen) > STALE_OPEN_MS;
+    return lost ? advert.last_seen : null;
 }
 
 /** Whether `next` is `last` listed again: it came while `last` was open, or soon after it left. */

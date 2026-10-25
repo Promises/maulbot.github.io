@@ -72,8 +72,8 @@ API needs no auth and CORS is open.
   for the fallback, `/our-map?since=&until=&limit=1000` for the log's history, and `/health`. The
   history includes open lobbies and is read a day at a time; seven quiet days in a row end it. Use
   `/our-map` rather than `map_like` on `/lobbies`, which makes the server scan every map's
-  compressed history. An advert the tracker never saw end counts as closed 25 minutes after it was
-  last seen, as the server reckons it.
+  compressed history. An advert the tracker never saw end counts as closed at its `last_seen` once the
+  API's derived `state` says `lost`, or 25 minutes (the tracker's live window) after it was last seen.
 - `isOurs` keeps our map, which is listed as "Warcraft Maul: Reimagined …", "Warcraft Maul
   Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain "WarCraft Maul" maps are other
   people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified copy that the operator ruled is not

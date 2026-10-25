@@ -2,15 +2,16 @@ import {LobbyAdvert, LobbySession} from './types';
 
 /**
  * How long after one advert leaves the list the next one may appear and still be the same lobby.
- * WC3 re-lists a lobby within seconds, but the tracker's client restarts now and then and loses a
- * minute or two of the list. Our host bot numbers every new lobby ("beta #4"), so a lobby of the
- * same name, host, map and region that soon after is a re-list, not a new one.
+ * The history before 2026-10-25 14:41 UTC re-lists every lobby within seconds, about every 90
+ * seconds (the tracker re-sent its list request), and a tracker restart loses a minute or two of
+ * the list. Our host bot numbers every new lobby ("beta #4"), so a lobby of the same name, host,
+ * map and region that soon after is a re-list, not a new one.
  */
 export const RELIST_GAP_MS = 5 * 60 * 1000;
 
 /**
  * How long a lobby still counts as open after its advert left the list: long enough to cover the
- * few seconds before WC3 lists it again, so a poll that lands in that gap does not drop it.
+ * few seconds before a re-list's new advert appears.
  */
 export const RELIST_GRACE_MS = 20 * 1000;
 

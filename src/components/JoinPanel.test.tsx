@@ -61,7 +61,7 @@ test('follows the feed: a lobby appears, fills, and goes once it is not re-liste
 
     const endedAt = new Date().toISOString();
     act(() => feedChannel().deliver('ended', {event: {instance_id: lobby.instance_id, ts: endedAt, kind: 'ended'}, lobby: {...fields, ended_at: endedAt}}));
-    // Still listed for the moment WC3 takes to re-list it…
+    // Still listed for the moment a re-list takes…
     expect(screen.getByText('Warcraft Maul Reim beta #7')).toBeInTheDocument();
     // …and gone when no new advert came.
     act(() => {

@@ -1,7 +1,8 @@
 /**
- * One advert of a lobby as the tracker saw it in Battle.net's custom game list. WC3 re-lists
- * every public lobby under a new id about every 90 seconds, so one real lobby is a chain of
- * these rows; `sessions.ts` joins them back up.
+ * One advert of a lobby as the tracker saw it in Battle.net's custom game list. A lobby can be
+ * several of these rows, each under a new id: until 2026-10-25 14:41 UTC the tracker made WC3
+ * re-issue every lobby about every 90 seconds, and a tracker restart still re-lists every open
+ * lobby once. `sessions.ts` joins them back up.
  *
  * Every field but the id can be null on a row captured before WC3 sent the lobby's details.
  */

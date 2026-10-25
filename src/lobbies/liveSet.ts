@@ -1,10 +1,10 @@
 import {FeedLobby, LobbyAdvert, LobbySession} from './types';
 
 /**
- * How long an ended advert still counts as an open lobby. Our lobby's re-list gaps (one advert's
- * end to the next one's first sighting) run to about five seconds (median 2.7s, longest 4.7s over
- * three hours), and the tracker ships in batches up to three seconds apart. Shorter, and the join
- * panel's card blinks out between adverts; lobbies that really closed linger this long instead.
+ * How long an ended advert still counts as an open lobby. A lobby keeps one advert for life, but
+ * a tracker restart ends every open lobby's advert and lists it again under a new one: a gap of a
+ * few seconds, plus up to three of batching on the tracker. Without this the join panel's card
+ * would blink out then; lobbies that really closed linger this long instead.
  */
 export const FEED_RELIST_GRACE_MS = 10 * 1000;
 
@@ -17,8 +17,8 @@ export function fromSnapshot(lobbies: LobbyAdvert[]): LiveSet {
 
 /**
  * The set after one feed event. `appeared`, `meta` and `players` add or update the advert; `ended`
- * marks it ended, and it stays in the set a little longer, since an ended advert is usually just WC3
- * re-listing the lobby under a new one. Events carry the count as `players`, and only when they
+ * marks it ended, and it stays in the set a little longer, since after a tracker restart the lobby
+ * comes back under a new advert. Events carry the count as `players`, and only when they
  * have one.
  */
 export function applyEvent(set: LiveSet, kind: string, lobby: FeedLobby): LiveSet {

@@ -78,13 +78,14 @@ API needs no auth and CORS is open.
   Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain "WarCraft Maul" maps are other
   people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified copy that the operator ruled is not
   ours, so the site never advertises or highlights it. The filter runs client-side as well as on the server.
-- WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows. Open
+- One lobby can be several adverts under new ids. Until 2026-10-25 14:41 UTC, the tracker's 90s
+  resend of its list request made WC3 re-issue every lobby (fixed by wc3-re-3). The history before
+  then is full of that churn, and a tracker restart still re-lists every open lobby once. Open
   lobbies carry `session_first_seen`, the tracker's start of the whole chain, and "open for" uses
-  it. On the feed an ended advert still counts as open for 10s. Our lobby's re-list gaps run to
-  about 5s, plus up to 3s of batching on the tracker, and anything shorter makes the join panel's
-  card blink out. For the history, `sessions.ts` joins rows by host, name, map file and
-  region when one starts within 5 minutes of the last ending; tracker restarts leave gaps of a
-  minute or two.
+  it. On the feed an ended advert still counts as open for 10s, which covers tracker restarts and
+  keeps the join panel's card from blinking out. For the history, `sessions.ts` joins rows by host,
+  name, map file and region when one starts within 5 minutes of the last ending; tracker restarts
+  leave gaps of a minute or two.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions
   are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, because `created_time`
   is always null, so the log says "Closed" rather than guessing.

@@ -70,7 +70,7 @@ export interface Stat {
 }
 
 export const GAME_STATS: Stat[] = [
-    {value: '28', label: 'Tower races'},
+    {value: '31', label: 'Tower races'},
     {value: '2', label: 'Modes - Classic & Blitz'},
     {value: '4', label: 'Difficulties'},
     {value: '13', label: 'Players'},

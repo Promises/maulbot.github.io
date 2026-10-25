@@ -183,7 +183,7 @@ const LoadingScreenStudioPage: FC = () => {
                 <div className={styles.actions}>
                     <button type="button" className={styles.exportPng} onClick={exportPng} disabled={!ready}>Export PNG</button>
                     <button type="button" className={styles.exportDds} onClick={exportDds} disabled={!ready}>Export DDS</button>
-                    <p className={styles.hint}>DDS is written uncompressed 32-bit BGRA, 1920 × 1080, top-down.</p>
+                    <p className={styles.hint}>DDS is written as DXT5, 1920 × 1080.</p>
                 </div>
             </aside>
 

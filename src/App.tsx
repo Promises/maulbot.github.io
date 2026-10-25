@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import ChangelogPage from './pages/ChangelogPage';
 import LoadingScreenStudioPage from './pages/LoadingScreenStudioPage';
 import LobbyLogPage from './pages/LobbyLogPage';
+import Wc3LobbiesPage from './pages/Wc3LobbiesPage';
 import {ROUTES} from './routes';
 
 // Its tower data is most of its weight, and only its own page needs it
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [
             {path: ROUTES.home, element: <HomePage/>},
             {path: ROUTES.changelog, element: <ChangelogPage/>},
             {path: ROUTES.lobbyLog, element: <LobbyLogPage/>},
+            {path: ROUTES.wc3Lobbies, element: <Wc3LobbiesPage/>},
         ],
     },
     // The tools are full-screen and do not use the site layout.

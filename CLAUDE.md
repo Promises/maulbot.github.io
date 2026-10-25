@@ -34,7 +34,11 @@ deprecation and stale caniuse-lite warnings are harmless.
 - Commit as the normal git identity, with no Claude attribution lines.
 
 ## Layout
-- `src/App.tsx`, `src/routes.ts`: router. `/` and `/changelog` use `Layout`. `/loading-screen` and
+- `src/App.tsx`, `src/routes.ts`: router. `/`, `/changelog`, `/lobbies` (the lobby log) and
+  `/wc3-lobbies` use `Layout`. `/wc3-lobbies` lists every open lobby on every map. It is
+  deliberately linked from nowhere and is kept out of search: the page adds a robots meta tag, and
+  `scripts/hidden-page.js` writes a static `build/wc3-lobbies/index.html` with one at build time.
+  Don't add it to `robots.txt`, which would advertise it. `/loading-screen` and
   `/maze-designer` are full-screen without the site chrome. The Maze Designer is lazy-loaded
   because of its tower data.
 - `src/pages/`: one component per route. `src/components/`: Hero (the download button), the site
@@ -45,9 +49,29 @@ deprecation and stale caniuse-lite warnings are harmless.
   races that are enabled, not random-only (the Loot Boxer), and in the Beginner, Intermediate or
   Advanced tier. That is fewer than the races marked `enabled` in `races.json`.
 - `src/github/`: runtime GitHub client with tests.
+- `src/lobbies/`: the lobby tracker client (see below), with the homepage's "Join us in-game"
+  panel (`components/JoinPanel`) and the two lobby pages built on it. `components/ChipGroup` is the
+  shared filter-button row.
 - `src/mazeDesigner/`: grid, A* pathing (`pathing.ts`), analysis, walker. `races.json` is generated.
 - `src/loadingScreen/`: renders a loading screen and encodes it as DXT5 DDS for the map.
 - `src/assets/wc3/`: the undead Warcraft III UI skin.
+
+## Lobby tracker
+The lobby features read our own tracker's public read-only API, `https://wc3.henning.tech/v1`, from
+the visitor's browser. It needs no auth, CORS is open, and it allows about 10 requests a second per IP.
+A signed-in WC3 client reads Battle.net's custom game list, and wcm-lobby-api serves what it saw.
+Blizzard has no lobby API, and the tracker's websocket is LAN-only, so the pages poll every 30s.
+- `GET /lobbies?live=true`: every open lobby on every map. `GET /lobbies?map_like=reimagined&since=&until=&limit=1000`:
+  the history, open lobbies included. `isOurs` then keeps our map, which is listed as "Warcraft Maul:
+  Reimagined …", "Warcraft Maul Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain
+  "WarCraft Maul" maps are other people's. `GET /health` tells "no lobbies" apart from "tracker down".
+- WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows.
+  `sessions.ts` joins them by host, name, map file and region when one starts within 5 minutes of
+  the last ending. Tracker restarts leave gaps of a minute or two.
+- `final_players` is the current count while `ended_at` is null and includes the host. The regions
+  are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, because `created_time`
+  is always null, so the log says "Closed" rather than guessing. Live rows' `first_seen` resets with
+  every re-list, so "open for" on the all-maps page only counts from when the page was opened.
 
 ## Map-repo integration
 Visitors' browsers read the map repo at runtime, unauthenticated, so each visitor IP gets 60 requests per hour:

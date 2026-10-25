@@ -1,0 +1,37 @@
+@use '../styles/tokens' as *;
+
+.group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.label {
+  @include label(10.5px, 0.2em);
+  margin-right: 4px;
+  color: $colour-text-faint;
+}
+
+%chip {
+  @include label(11.5px, 0.08em);
+  text-transform: none;
+  min-height: 14px;
+  padding: 0 6px;
+}
+
+.chip {
+  @extend %chip;
+  @include wc3-button(12px);
+  color: $colour-gold-dim;
+}
+
+.chipActive {
+  @extend %chip;
+  @include wc3-frame($wc3-frame-button-down, $wc3-bg-button-down, 12px);
+  display: inline-flex;
+  align-items: center;
+  color: $colour-gold-hover;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+}

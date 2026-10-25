@@ -10,6 +10,7 @@ import {useMediaQuery} from '../hooks/useMediaQuery';
 const NAV_ENTRIES = [
     {label: 'Download', to: homeSection('download')},
     {label: 'Patch notes', to: ROUTES.changelog},
+    {label: 'Lobbies', to: ROUTES.lobbyLog},
     {label: 'Discord', to: homeSection('discord')},
     {label: 'Source', to: homeSection('source')},
     {label: 'Credits', to: homeSection('credits')},

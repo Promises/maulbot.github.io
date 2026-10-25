@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ChangelogPage from './pages/ChangelogPage';
 import LoadingScreenStudioPage from './pages/LoadingScreenStudioPage';
+import LobbyLogPage from './pages/LobbyLogPage';
 import {ROUTES} from './routes';
 
 // Its tower data is most of its weight, and only its own page needs it
@@ -18,6 +19,7 @@ export const routes: RouteObject[] = [
         children: [
             {path: ROUTES.home, element: <HomePage/>},
             {path: ROUTES.changelog, element: <ChangelogPage/>},
+            {path: ROUTES.lobbyLog, element: <LobbyLogPage/>},
         ],
     },
     // The tools are full-screen and do not use the site layout.

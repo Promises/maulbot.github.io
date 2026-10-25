@@ -1,10 +1,10 @@
 {
   "files": {
     "main.css": "/static/css/main.ee476bd0.css",
-    "main.js": "/static/js/main.c387db93.js",
-    "static/css/73.d0658f34.chunk.css": "/static/css/73.d0658f34.chunk.css",
-    "static/js/73.a41712ab.chunk.js": "/static/js/73.a41712ab.chunk.js",
-    "static/js/22.465897db.chunk.js": "/static/js/22.465897db.chunk.js",
+    "main.js": "/static/js/main.c3ca30a1.js",
+    "static/css/401.9abcc6ff.chunk.css": "/static/css/401.9abcc6ff.chunk.css",
+    "static/js/401.4e58f390.chunk.js": "/static/js/401.4e58f390.chunk.js",
+    "static/js/787.4a2e1ce7.chunk.js": "/static/js/787.4a2e1ce7.chunk.js",
     "static/media/bg-panel.png": "/static/media/bg-panel.4d2af348131bfc9770af.png",
     "static/media/frame-panel.png": "/static/media/frame-panel.7c97783fddc9c881c06f.png",
     "static/media/LifeCraft_Font.ttf": "/static/media/LifeCraft_Font.7f2bcab913fb2c2796e0.ttf",
@@ -16,13 +16,13 @@
     "static/media/frame-button-down.png": "/static/media/frame-button-down.4c45c5654dfb13b5d3bf.png",
     "index.html": "/index.html",
     "main.ee476bd0.css.map": "/static/css/main.ee476bd0.css.map",
-    "main.c387db93.js.map": "/static/js/main.c387db93.js.map",
-    "73.d0658f34.chunk.css.map": "/static/css/73.d0658f34.chunk.css.map",
-    "73.a41712ab.chunk.js.map": "/static/js/73.a41712ab.chunk.js.map",
-    "22.465897db.chunk.js.map": "/static/js/22.465897db.chunk.js.map"
+    "main.c3ca30a1.js.map": "/static/js/main.c3ca30a1.js.map",
+    "401.9abcc6ff.chunk.css.map": "/static/css/401.9abcc6ff.chunk.css.map",
+    "401.4e58f390.chunk.js.map": "/static/js/401.4e58f390.chunk.js.map",
+    "787.4a2e1ce7.chunk.js.map": "/static/js/787.4a2e1ce7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ee476bd0.css",
-    "static/js/main.c387db93.js"
+    "static/js/main.c3ca30a1.js"
   ]
 }

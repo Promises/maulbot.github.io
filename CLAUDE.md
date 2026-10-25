@@ -57,22 +57,35 @@ deprecation and stale caniuse-lite warnings are harmless.
 - `src/assets/wc3/`: the undead Warcraft III UI skin.
 
 ## Lobby tracker
-The lobby features read our own tracker's public read-only API, `https://wc3.henning.tech/v1`, from
-the visitor's browser. It needs no auth, CORS is open, and it allows about 10 requests a second per IP.
-A signed-in WC3 client reads Battle.net's custom game list, and wcm-lobby-api serves what it saw.
-Blizzard has no lobby API, and the tracker's websocket is LAN-only, so the pages poll every 30s.
-- `GET /lobbies?live=true`: every open lobby on every map. `GET /lobbies?map_like=reimagined&since=&until=&limit=1000`:
-  the history, open lobbies included. `isOurs` then keeps our map, which is listed as "Warcraft Maul:
-  Reimagined …", "Warcraft Maul Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain
-  "WarCraft Maul" maps are other people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified
-  copy that the operator ruled is not ours, so the site never advertises or highlights it. `GET /health` tells "no lobbies" apart from "tracker down".
-- WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows.
-  `sessions.ts` joins them by host, name, map file and region when one starts within 5 minutes of
-  the last ending. Tracker restarts leave gaps of a minute or two.
+The lobby features read our own tracker from the visitor's browser. A signed-in WC3 client reads
+Battle.net's custom game list, and wcm-lobby-api serves what it saw. Blizzard has no lobby API. The
+API needs no auth and CORS is open.
+- **Live feed** (`src/lobbies/feed.ts`): Phoenix channels at `wss://wc3.henning.tech/socket/websocket`,
+  using the official `phoenix` client. The homepage panel joins `lobbies:our_map`, which leaves out
+  unofficial copies server-side, and `/wc3-lobbies` joins `lobbies:all`. Each join pushes a `snapshot`
+  of the open lobbies with `as_of` and `health`. Then come `appeared`, `players`, `meta` and `ended`,
+  each with `{event, lobby}`; events carry the count as `players`, not `final_players`. A `health`
+  push comes whenever the tracker's status changes. `liveSet.ts` applies all of this. If no snapshot
+  arrives within 8s, or the socket drops, `useLiveFeed` reads `GET /v1/lobbies?live=true` every 30s
+  until the feed is back.
+- **REST** (`https://wc3.henning.tech/v1`, about 10 requests a second per IP): `/lobbies?live=true`
+  for the fallback, `/lobbies?map_like=reimagined&since=&until=&limit=1000` for the log's history
+  (open lobbies included), and `/health`.
+- `isOurs` keeps our map, which is listed as "Warcraft Maul: Reimagined …", "Warcraft Maul
+  Reimagined ….w3x" and "WarcraftMaulReimagined-….w3x". Plain "WarCraft Maul" maps are other
+  people's. `Warcraft_Maul_Reimagined_fixed.w3x` is a modified copy that the operator ruled is not
+  ours, so the site never advertises or highlights it. The filter runs client-side as well as on the server.
+- WC3 re-lists every lobby under a new advert about every 90s, so one lobby is many rows. Open
+  lobbies carry `session_first_seen`, the tracker's start of the whole chain, and "open for" uses
+  it. On the feed, a re-list's new advert comes with or before the old one's `ended`, so an ended
+  advert lingers only 3s. For the history, `sessions.ts` joins rows by host, name, map file and
+  region when one starts within 5 minutes of the last ending; tracker restarts leave gaps of a
+  minute or two.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions
   are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, because `created_time`
-  is always null, so the log says "Closed" rather than guessing. Live rows' `first_seen` resets with
-  every re-list, so "open for" on the all-maps page only counts from when the page was opened.
+  is always null, so the log says "Closed" rather than guessing.
+- Tests never connect: `src/__mocks__/phoenix.ts` stands in for the client, and `lobbies/testing.ts`
+  drives it.
 
 ## Map-repo integration
 Visitors' browsers read the map repo at runtime, unauthenticated, so each visitor IP gets 60 requests per hour:

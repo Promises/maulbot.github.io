@@ -1,76 +1,165 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {fetchActiveLobbies, fetchHealth, fetchLobbyHistory, HistoryWindow} from './api';
-import {groupSessions, isOpen} from './sessions';
-import {LobbyAdvert, LobbySession} from './types';
+import {FeedTopic, subscribeFeed} from './feed';
+import {isOurs} from './format';
+import {applyEvent, fromSnapshot, LiveSet, openLobbies, prune} from './liveSet';
+import {groupSessions} from './sessions';
+import {LobbyAdvert, LobbySession, TrackerHealth} from './types';
 
 /** `unavailable`: the tracker is down or restarting, so an empty list would say nothing. */
 export type LobbyStatus = 'loading' | 'ready' | 'unavailable';
 
+/** How often the open lobbies are read over REST while the live feed is unreachable. */
 export const POLL_MS = 30 * 1000;
 
-// How far back the open lobbies' first adverts are looked for, which bounds "open for".
-const OPEN_LOOKBACK_MS = 12 * 60 * 60 * 1000;
+// How long the live feed gets to send its first snapshot before the list is read over REST instead.
+const FEED_WAIT_MS = 8 * 1000;
+
+// How often "open for" and "updated … ago" move on, and ended adverts are let go.
+const TICK_MS = 5 * 1000;
 
 // The history is asked for a week at a time, the API's own default span.
 const HISTORY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 const iso = (time: number) => new Date(time).toISOString();
 
-/**
- * Whether the tracker is seeing Battle.net's list. Its client restarts now and then, and while it
- * is down the list is empty or frozen.
- */
-async function trackerIsUp(): Promise<boolean> {
-    try {
-        const health = await fetchHealth();
-        return health.status === 'ok' && health.current_live_lobbies > 0;
-    } catch {
-        return false;
-    }
-}
+const UNREACHABLE: TrackerHealth = {status: 'unreachable'};
 
-/** Runs `load` now and every `POLL_MS` after, skipping the ticks while the tab is hidden. */
-function usePolling(load: () => void): void {
-    const latest = useRef(load);
-    latest.current = load;
+/** The current time, moving on every `intervalMs`. */
+export function useNow(intervalMs: number = TICK_MS): number {
+    const [now, setNow] = useState(Date.now);
     useEffect(() => {
-        latest.current();
-        const timer = setInterval(() => !document.hidden && latest.current(), POLL_MS);
+        const timer = setInterval(() => setNow(Date.now()), intervalMs);
         return () => clearInterval(timer);
-    }, []);
+    }, [intervalMs]);
+    return now;
 }
 
-export interface OurLobbiesState {
+export interface LiveLobbiesState {
     status: LobbyStatus;
-    /** Our open lobbies, the fullest first. */
+    /** The open lobbies, newest first. */
     lobbies: LobbySession[];
-    /** When the list was read, for "open for". */
-    readAt: number;
+    /** When the list last changed or was read; null before the first time. */
+    updatedAt: number | null;
+    /** The time "open for" and "updated … ago" are reckoned from, moving on every few seconds. */
+    now: number;
+    /** True while the list comes in live over the feed, false while it is read every `POLL_MS`. */
+    live: boolean;
+    refresh: () => void;
 }
 
-/** Our map's open lobbies, read every `POLL_MS`. */
-export function useOurLobbies(): OurLobbiesState {
-    const [state, setState] = useState<OurLobbiesState>({status: 'loading', lobbies: [], readAt: Date.now()});
+/**
+ * The open lobbies kept current from the tracker's live feed: its snapshot, then each change as it
+ * happens. While the feed cannot be reached the list is read over REST every `POLL_MS` instead,
+ * until the feed is back. `keep` picks the lobbies to show, and must not change between renders.
+ */
+function useLiveFeed(topic: FeedTopic, keep: (advert: Pick<LobbyAdvert, 'map_name' | 'map_file'>) => boolean): LiveLobbiesState {
+    const [set, setSet] = useState<LiveSet>(() => new Map());
+    const [health, setHealth] = useState<TrackerHealth | null>(null);
+    const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+    const [live, setLive] = useState(false);
+    const [generation, setGeneration] = useState(0);
+    const now = useNow();
+    // Feed events older than the list they would change are already in it.
+    const asOf = useRef(0);
+    const polling = useRef<ReturnType<typeof setInterval> | null>(null);
     const mounted = useMounted();
 
-    usePolling(async () => {
-        const now = Date.now();
-        try {
-            const {adverts} = await fetchLobbyHistory({since: iso(now - OPEN_LOOKBACK_MS)});
-            const lobbies = groupSessions(adverts)
-                .filter((session) => isOpen(session, now))
-                .sort((a, b) => b.players - a.players);
-            const status = lobbies.length > 0 || await trackerIsUp() ? 'ready' : 'unavailable';
-            mounted.current && setState({status, lobbies, readAt: now});
-        } catch {
-            // One failed poll keeps what was last shown; only a first load turns unavailable.
-            mounted.current && setState((current) => current.status === 'loading'
-                ? {status: 'unavailable', lobbies: [], readAt: now}
-                : current);
-        }
-    });
+    const replace = useCallback((lobbies: LobbyAdvert[], at: number, status: TrackerHealth) => {
+        asOf.current = at;
+        setSet(fromSnapshot(lobbies.filter(keep)));
+        setHealth(status);
+        setUpdatedAt(Date.now());
+    }, [keep]);
 
-    return state;
+    const readOverRest = useCallback(async () => {
+        const at = Date.now();
+        try {
+            const lobbies = (await fetchActiveLobbies()).filter(keep);
+            // The health only matters when the list is empty: is that real, or is the tracker down?
+            const status = lobbies.length > 0 ? {status: 'ok'} : await fetchHealth().catch(() => UNREACHABLE);
+            mounted.current && replace(lobbies, at, status);
+        } catch {
+            // A failed read keeps what was last shown; with nothing shown yet, the list is unavailable.
+            mounted.current && setHealth((current) => current ?? UNREACHABLE);
+        }
+    }, [keep, replace, mounted]);
+
+    const stopPolling = useCallback(() => {
+        if (polling.current) {
+            clearInterval(polling.current);
+            polling.current = null;
+        }
+    }, []);
+
+    const startPolling = useCallback(() => {
+        if (polling.current) {
+            return;
+        }
+        readOverRest();
+        polling.current = setInterval(() => !document.hidden && readOverRest(), POLL_MS);
+    }, [readOverRest]);
+
+    useEffect(() => {
+        const wait = setTimeout(startPolling, FEED_WAIT_MS);
+        const unsubscribe = subscribeFeed(topic, {
+            snapshot: (snapshot) => {
+                clearTimeout(wait);
+                stopPolling();
+                setLive(true);
+                replace(snapshot.lobbies, Date.parse(snapshot.as_of), snapshot.health);
+            },
+            event: (kind, event, lobby) => {
+                if (Date.parse(event.ts) < asOf.current || !keep(lobby)) {
+                    return;
+                }
+                setSet((current) => applyEvent(current, kind, lobby));
+                setUpdatedAt(Date.now());
+            },
+            health: setHealth,
+            lost: () => {
+                setLive(false);
+                startPolling();
+            },
+        });
+        return () => {
+            clearTimeout(wait);
+            unsubscribe();
+            stopPolling();
+        };
+    }, [topic, generation, keep, replace, startPolling, stopPolling]);
+
+    // Lets go of adverts that ended and were not followed by a re-list.
+    useEffect(() => {
+        setSet((current) => prune(current, now));
+    }, [now]);
+
+    const lobbies = useMemo(() => openLobbies(set, now), [set, now]);
+    let status: LobbyStatus = 'ready';
+    if (health === null) {
+        status = 'loading';
+    } else if (lobbies.length === 0 && health.status !== 'ok') {
+        status = 'unavailable';
+    }
+
+    // Live, a fresh join brings a fresh snapshot; otherwise read the list now.
+    const refresh = useCallback(() => (live ? setGeneration((g) => g + 1) : readOverRest()), [live, readOverRest]);
+
+    return {status, lobbies, updatedAt, now, live, refresh};
+}
+
+const everyLobby = () => true;
+
+/** Our map's open lobbies, the fullest first. */
+export function useOurLobbies(): LiveLobbiesState {
+    const state = useLiveFeed('lobbies:our_map', isOurs);
+    const lobbies = useMemo(() => [...state.lobbies].sort((a, b) => b.players - a.players), [state.lobbies]);
+    return {...state, lobbies};
+}
+
+/** Every open lobby on every map, newest first. */
+export function useLiveLobbies(): LiveLobbiesState {
+    return useLiveFeed('lobbies:all', everyLobby);
 }
 
 interface HistoryCursor extends HistoryWindow {
@@ -136,67 +225,6 @@ export function useLobbyLog(): LobbyLogState {
 
     const lobbies = useMemo(() => groupSessions(adverts), [adverts]);
     return {status, lobbies, hasOlder: cursor !== null, loadingOlder, loadOlder};
-}
-
-export interface LiveLobby {
-    advert: LobbyAdvert;
-    /**
-     * When it opened, as far as this page has seen: WC3 re-lists every lobby under a new advert
-     * about every 90 seconds, so a lobby that was already up when the page loaded counts from then.
-     */
-    openedAt: string;
-}
-
-export interface LiveLobbiesState {
-    status: LobbyStatus;
-    lobbies: LiveLobby[];
-    /** When the list was last read; null before the first read. */
-    updatedAt: number | null;
-    refresh: () => void;
-}
-
-const lobbyKey = (advert: LobbyAdvert) => [advert.host, advert.name, advert.map_file, advert.region].join('\u0000');
-
-interface TrackedLobby extends LiveLobby {
-    readAt: number;
-}
-
-/**
- * Every open lobby on every map, read every `POLL_MS` and on `refresh`. A lobby missing from one
- * read stays listed until the next, since a read can fall between two of its adverts.
- */
-export function useLiveLobbies(): LiveLobbiesState {
-    const [state, setState] = useState<Omit<LiveLobbiesState, 'refresh'>>({status: 'loading', lobbies: [], updatedAt: null});
-    const tracked = useRef(new Map<string, TrackedLobby>());
-    const mounted = useMounted();
-
-    const load = useCallback(async () => {
-        try {
-            const adverts = (await fetchActiveLobbies()).filter((advert) => advert.name && advert.host);
-            const now = Date.now();
-            const next = new Map<string, TrackedLobby>();
-            for (const advert of adverts) {
-                const key = lobbyKey(advert);
-                const earlier = tracked.current.get(key)?.openedAt;
-                const openedAt = earlier && earlier < advert.first_seen ? earlier : advert.first_seen;
-                next.set(key, {advert, openedAt, readAt: now});
-            }
-            tracked.current.forEach((lobby, key) => {
-                if (!next.has(key) && now - lobby.readAt <= POLL_MS * 1.5) {
-                    next.set(key, lobby);
-                }
-            });
-            tracked.current = next;
-            const lobbies = Array.from(next.values()).map(({advert, openedAt}) => ({advert, openedAt}));
-            const status = adverts.length > 0 || await trackerIsUp() ? 'ready' : 'unavailable';
-            mounted.current && setState({status, lobbies, updatedAt: now});
-        } catch {
-            mounted.current && setState((current) => ({...current, status: current.updatedAt ? current.status : 'unavailable'}));
-        }
-    }, [mounted]);
-
-    usePolling(load);
-    return {...state, refresh: load};
 }
 
 function useMounted() {

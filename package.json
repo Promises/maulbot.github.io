@@ -4,6 +4,7 @@
   "homepage": "https://warcraftmaul.com",
   "private": true,
   "dependencies": {
+    "phoenix": "1.8.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.30.6",
@@ -45,6 +46,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.11.65",
+    "@types/phoenix": "1.6.7",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
     "gh-pages": "^4.0.0"

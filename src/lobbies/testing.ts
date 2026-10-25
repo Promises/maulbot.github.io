@@ -1,3 +1,5 @@
+import {Socket} from 'phoenix';
+import type {FakeChannel, FakeSocket} from '../__mocks__/phoenix';
 import {LobbyAdvert, TrackerHealth} from './types';
 
 let nextId = 0;
@@ -47,4 +49,16 @@ export function mockTracker({history = [], live = [], health = {status: 'ok', cu
     });
     global.fetch = fetchMock as unknown as typeof fetch;
     return fetchMock;
+}
+
+/** The live-feed socket the code under test opened last (tests get a stand-in Phoenix client). */
+export function feedSocket(): FakeSocket {
+    const opened = (Socket as unknown as typeof FakeSocket).opened;
+    return opened[opened.length - 1];
+}
+
+/** The live-feed channel the code under test joined last. */
+export function feedChannel(): FakeChannel {
+    const {channels} = feedSocket();
+    return channels[channels.length - 1];
 }

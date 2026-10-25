@@ -16,7 +16,7 @@ const Meta: FC<{label: string; children: ReactNode}> = ({label, children}) => (
     </span>
 );
 
-const LobbyCard: FC<{lobby: LobbySession; readAt: number}> = ({lobby, readAt}) => {
+const LobbyCard: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
     const {advert, players} = lobby;
     const name = advert.name ?? '';
     const host = splitHost(advert.host);
@@ -61,7 +61,7 @@ const LobbyCard: FC<{lobby: LobbySession; readAt: number}> = ({lobby, readAt}) =
             <div className={styles.metaRow}>
                 <Meta label="Host">{host.name}<span className={styles.tag}>{host.tag}</span></Meta>
                 <Meta label="Region">{regionName(advert.region)}</Meta>
-                <Meta label="Open for">{ago(lobby.openedAt, readAt)}</Meta>
+                <Meta label="Open for">{ago(lobby.openedAt, now)}</Meta>
                 <Meta label="Version">{versionOf(advert)}</Meta>
             </div>
         </div>
@@ -70,7 +70,7 @@ const LobbyCard: FC<{lobby: LobbySession; readAt: number}> = ({lobby, readAt}) =
 
 /** Our map's open lobbies, so a visitor can join one now. */
 const JoinPanel: FC = () => {
-    const {status, lobbies, readAt} = useOurLobbies();
+    const {status, lobbies, now} = useOurLobbies();
     const shown = lobbies.slice(0, MAX_SHOWN);
 
     return (
@@ -85,7 +85,7 @@ const JoinPanel: FC = () => {
             {shown.length > 0 && (
                 <>
                     {shown.map((lobby) => (
-                        <LobbyCard key={`${lobby.advert.host}\u0000${lobby.advert.name}`} lobby={lobby} readAt={readAt}/>
+                        <LobbyCard key={`${lobby.advert.host}\u0000${lobby.advert.name}`} lobby={lobby} now={now}/>
                     ))}
                     <p className={styles.hint}>
                         In Warcraft III: Custom Game → search the lobby name. No need to download first — the map

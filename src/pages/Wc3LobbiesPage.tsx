@@ -1,11 +1,11 @@
 import {FC, useEffect, useMemo, useState} from 'react';
 import styles from './Wc3Lobbies.module.scss';
 import ChipGroup, {ChipOption} from '../components/ChipGroup';
-import {LiveLobby, useLiveLobbies} from '../lobbies/hooks';
+import {useLiveLobbies} from '../lobbies/hooks';
 import {ago, isOurs, mapNameOf, regionCode, splitHost} from '../lobbies/format';
+import {LobbySession} from '../lobbies/types';
 
 const ALL = 'all';
-const TICK_MS = 5000;
 
 type Region = typeof ALL | 'eu' | 'usw' | 'kr';
 type Sort = 'newest' | 'players' | 'full';
@@ -23,9 +23,9 @@ const SORT_OPTIONS: ChipOption<Sort>[] = [
     {value: 'full', label: 'Nearly full'},
 ];
 
-const fullness = ({advert}: LiveLobby) => advert.final_players / (advert.max_players || 1);
+const fullness = ({advert}: LobbySession) => advert.final_players / (advert.max_players || 1);
 
-const SORTERS: Record<Sort, (a: LiveLobby, b: LiveLobby) => number> = {
+const SORTERS: Record<Sort, (a: LobbySession, b: LobbySession) => number> = {
     newest: (a, b) => Date.parse(b.openedAt) - Date.parse(a.openedAt),
     players: (a, b) => b.advert.final_players - a.advert.final_players,
     full: (a, b) => fullness(b) - fullness(a),
@@ -42,16 +42,7 @@ function useNoIndex(): void {
     }, []);
 }
 
-function useNow(intervalMs: number): number {
-    const [now, setNow] = useState(Date.now);
-    useEffect(() => {
-        const timer = setInterval(() => setNow(Date.now()), intervalMs);
-        return () => clearInterval(timer);
-    }, [intervalMs]);
-    return now;
-}
-
-const LobbyRow: FC<{lobby: LiveLobby; now: number}> = ({lobby, now}) => {
+const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
     const {advert} = lobby;
     const host = splitHost(advert.host);
     const ours = isOurs(advert);
@@ -77,8 +68,7 @@ const LobbyRow: FC<{lobby: LiveLobby; now: number}> = ({lobby, now}) => {
 /** Every open WC3 lobby on every map. Linked from nowhere and kept out of search. */
 const Wc3LobbiesPage: FC = () => {
     useNoIndex();
-    const {status, lobbies, updatedAt, refresh} = useLiveLobbies();
-    const now = useNow(TICK_MS);
+    const {status, lobbies, updatedAt, now, refresh} = useLiveLobbies();
     const [query, setQuery] = useState('');
     const [region, setRegion] = useState<Region>(ALL);
     const [sort, setSort] = useState<Sort>('newest');

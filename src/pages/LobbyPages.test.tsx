@@ -3,7 +3,7 @@ import {createMemoryRouter, RouterProvider} from 'react-router-dom';
 import {ROUTER_FUTURE} from '../App';
 import LobbyLogPage from './LobbyLogPage';
 import Wc3LobbiesPage from './Wc3LobbiesPage';
-import {advert, mockTracker} from '../lobbies/testing';
+import {advert, feedChannel, mockTracker} from '../lobbies/testing';
 
 async function renderPage(element: JSX.Element) {
     render(<RouterProvider router={createMemoryRouter([{path: '*', element}])} future={ROUTER_FUTURE}/>);
@@ -61,12 +61,13 @@ describe('lobby log', () => {
 
 describe('every open lobby', () => {
     it('puts our map first and keeps the page out of search', async () => {
-        mockTracker({live: [
-            advert({name: 'LTD 4v4', map_name: 'Legion TD Mega 4.6', map_file: 'Maps/Legion TD Mega 4.6.w3x',
-                host: 'Ranger#1123', final_players: 7, max_players: 8}),
-            advert({name: 'Warcraft Maul Reim beta #5', final_players: 1}),
-        ]});
         await renderPage(<Wc3LobbiesPage/>);
+        expect(feedChannel().topic).toBe('lobbies:all');
+        act(() => feedChannel().deliver('snapshot', {as_of: new Date().toISOString(), health: {status: 'ok'}, lobbies: [
+            advert({name: 'LTD 4v4', map_name: 'Legion TD Mega 4.6', map_file: 'Maps/Legion TD Mega 4.6.w3x',
+                host: 'Ranger#1123', final_players: 7, max_players: 8, session_first_seen: minutesAgo(12)}),
+            advert({name: 'Warcraft Maul Reim beta #5', final_players: 1}),
+        ]}));
         const rows = screen.getAllByRole('listitem');
         expect(within(rows[0]).getByText('Warcraft Maul Reim beta #5')).toBeInTheDocument();
         expect(screen.getByText('2 lobbies · 8 players waiting')).toBeInTheDocument();
@@ -75,5 +76,6 @@ describe('every open lobby', () => {
         fireEvent.change(screen.getByRole('searchbox'), {target: {value: 'legion'}});
         expect(screen.getAllByRole('listitem')).toHaveLength(1);
         expect(screen.getByText('1 lobbies · 7 players waiting')).toBeInTheDocument();
+        expect(screen.getByText('12m')).toBeInTheDocument();
     });
 });

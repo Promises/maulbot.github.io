@@ -23,11 +23,33 @@ export interface LobbyAdvert {
     ended_at: string | null;
     /** When the game started. The tracker cannot see that yet, so this is always null for now. */
     created_time: string | null;
+    /**
+     * On open lobbies: when the lobby's first advert was listed, across all its re-lists, as the
+     * tracker joins them up. Absent on history rows.
+     */
+    session_first_seen?: string | null;
 }
 
+/** "ok", "stale" (no news from Battle.net for a while), "no_live_lobbies" or "db_unavailable". */
 export interface TrackerHealth {
     status: string;
-    current_live_lobbies: number;
+    current_live_lobbies?: number;
+}
+
+/** A lobby in a live-feed event: the advert with `players`, when the event has a count, for `final_players`. */
+export type FeedLobby = Omit<LobbyAdvert, 'final_players'> & {players?: number};
+
+export interface FeedEvent {
+    instance_id: string;
+    ts: string;
+    kind: string;
+}
+
+/** What the live feed pushes right after joining: the open lobbies as of `as_of`. */
+export interface FeedSnapshot {
+    as_of: string;
+    health: TrackerHealth;
+    lobbies: LobbyAdvert[];
 }
 
 /** One real lobby: the adverts of the same host, name, map and region, joined end to start. */

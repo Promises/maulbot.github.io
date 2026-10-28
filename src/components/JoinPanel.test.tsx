@@ -88,6 +88,20 @@ test('follows the feed: a lobby appears, fills, and goes once it is not re-liste
     expect(screen.queryByText('Warcraft Maul Reim beta #7')).not.toBeInTheDocument();
 });
 
+test('a re-host updates the lobby in place: same card, new count', async () => {
+    await renderPanel();
+    const lobby = advert({name: 'Warcraft Maul Reim beta #9', final_players: 6, session_first_seen: minutesAgo(40)});
+    snapshot([lobby]);
+    const {final_players, ...fields} = lobby;
+    act(() => feedChannel().deliver('rehost', {
+        event: {instance_id: lobby.instance_id, ts: new Date().toISOString(), kind: 'rehost', players: 1, old_webui_id: 1, new_webui_id: 2},
+        lobby: {...fields, players: 1},
+    }));
+    expect(screen.getAllByText('Warcraft Maul Reim beta #9')).toHaveLength(1);
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('40m')).toBeInTheDocument();
+});
+
 test('copying a name says so for a moment', async () => {
     jest.useFakeTimers();
     const writeText = jest.fn(async () => undefined);

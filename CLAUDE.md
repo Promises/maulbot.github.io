@@ -63,8 +63,11 @@ API needs no auth and CORS is open.
 - **Live feed** (`src/lobbies/feed.ts`): Phoenix channels at `wss://wc3.henning.tech/socket/websocket`,
   using the official `phoenix` client. The homepage panel joins `lobbies:our_map`, which leaves out
   unofficial copies server-side, and `/wc3-lobbies` joins `lobbies:all`. Each join pushes a `snapshot`
-  of the open lobbies with `as_of` and `health`. Then come `appeared`, `players`, `meta` and `ended`,
-  each with `{event, lobby}`; events carry the count as `players`, not `final_players`. A `health`
+  of the open lobbies with `as_of` and `health`. Then come lobby events, each `{event, lobby}`:
+  `appeared`, `players`, `meta`, `rehost` (the host made a new game in the same lobby, under the
+  same id) and `ended`. Every push with a lobby in it is routed through the channel's `onMessage`,
+  so a kind added later updates the lobby instead of being dropped; only `ended` ends one. Events
+  carry the count as `players`, not `final_players`. A `health`
   push comes whenever the tracker's status changes. `liveSet.ts` applies all of this. If no snapshot
   arrives within 8s, or the socket drops, `useLiveFeed` reads `GET /v1/lobbies?live=true` every 30s
   until the feed is back.
@@ -95,8 +98,9 @@ API needs no auth and CORS is open.
   have a password, so unknown ones stay.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions
   are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, so the log says
-  "Closed" rather than guessing. `created_time` is when the realm created the lobby, not a game
-  start; never read it as one.
+  "Closed" rather than guessing. `created_time` is the host-reported creation of the lobby's first game,
+  frozen after that (one host was 2.3h off). It is neither a game start nor a lobby age; use
+  `session_first_seen` for "open since".
 - Realm fields that are nullable forever: `private`, `game_type`, `map_source`, `observers`,
   `map_size`, `map_crc` and `map_sha1`. Old lobbies never have them; live ones have since
   2026-10-28. The join panel leaves out `private` lobbies, as it does locked ones. In practice

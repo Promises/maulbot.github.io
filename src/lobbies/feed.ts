@@ -10,12 +10,13 @@ const FEED_URL = 'wss://wc3.henning.tech/socket';
 /** `lobbies:all` has every lobby; `lobbies:our_map` only ours, unofficial copies left out. */
 export type FeedTopic = 'lobbies:all' | 'lobbies:our_map';
 
-const LOBBY_EVENTS = ['appeared', 'players', 'meta', 'ended'];
-
 export interface FeedListener {
     /** Sent after every join, the first and each one after a reconnect: start over from it. */
     snapshot: (snapshot: FeedSnapshot) => void;
-    /** A change to one lobby: `appeared`, `players`, `meta` or `ended`. */
+    /**
+     * A change to one lobby, named by its kind: `appeared`, `players`, `meta`, `rehost` (the host
+     * made a new game in the same lobby), `ended`, or any the tracker adds later.
+     */
     event: (kind: string, event: FeedEvent, lobby: FeedLobby) => void;
     /** Whenever the tracker's status changes. */
     health: (health: TrackerHealth) => void;
@@ -43,9 +44,15 @@ export function subscribeFeed(topic: FeedTopic, listener: FeedListener): () => v
     const channel = socket.channel(topic);
     channel.on('snapshot', whileOpen((snapshot: FeedSnapshot) => listener.snapshot(snapshot)));
     channel.on('health', whileOpen((health: TrackerHealth) => listener.health(health)));
-    for (const kind of LOBBY_EVENTS) {
-        channel.on(kind, whileOpen(({event, lobby}: {event: FeedEvent; lobby: FeedLobby}) => listener.event(kind, event, lobby)));
-    }
+    // Every push with a lobby in it is a change to that lobby, whatever its kind, so a kind the
+    // tracker adds later is not lost. The channel sees every message here and wants each back.
+    const onLobbyEvent = whileOpen((kind: string, event: FeedEvent, lobby: FeedLobby) => listener.event(kind, event, lobby));
+    channel.onMessage = (kind, payload) => {
+        if (payload?.event && payload?.lobby) {
+            onLobbyEvent(kind, payload.event, payload.lobby);
+        }
+        return payload;
+    };
     channel.join()
         .receive('error', lost)
         .receive('timeout', lost);

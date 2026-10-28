@@ -16,9 +16,9 @@ export function fromSnapshot(lobbies: LobbyAdvert[]): LiveSet {
 }
 
 /**
- * The set after one feed event. `appeared`, `meta` and `players` add or update the advert; `ended`
- * marks it ended, and it stays in the set a little longer, since after a tracker restart the lobby
- * comes back under a new advert. Events carry the count as `players`, and only when they
+ * The set after one feed event. `ended` marks the advert ended, and it stays in the set a little
+ * longer, since after a tracker restart the lobby comes back under a new advert. Every other kind
+ * (`appeared`, `players`, `meta`, `rehost`, and any to come) adds or updates the advert. Events carry the count as `players`, and only when they
  * have one.
  */
 export function applyEvent(set: LiveSet, kind: string, lobby: FeedLobby): LiveSet {

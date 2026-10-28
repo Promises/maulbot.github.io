@@ -28,9 +28,15 @@ export class FakeChannel {
         this.left = true;
     }
 
-    /** Delivers a server push to the channel's handlers. */
+    /** Sees every message before its handlers do, as the real channel's hook; must hand the payload back. */
+    onMessage(_event: string, payload: any, _ref?: any): any {
+        return payload;
+    }
+
+    /** Delivers a server push: through `onMessage`, then to the channel's handlers. */
     deliver(event: string, payload: unknown) {
-        this.handlers.get(event)?.forEach((handler) => handler(payload));
+        const handled = this.onMessage(event, payload);
+        this.handlers.get(event)?.forEach((handler) => handler(handled));
     }
 
     /** Answers the join, e.g. with `error`. */

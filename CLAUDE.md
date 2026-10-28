@@ -103,8 +103,12 @@ API needs no auth and CORS is open.
   `session_first_seen` for "open since".
 - Realm fields that are nullable forever: `private`, `game_type`, `map_source`, `observers`,
   `map_size`, `map_crc` and `map_sha1`. Old lobbies never have them; live ones have since
-  2026-10-28. The join panel leaves out `private` lobbies, as it does locked ones. In practice
-  every private lobby is locked, so there is no separate private mark. On `/wc3-lobbies`:
+  2026-10-28. The join panel leaves out `private` lobbies, as it does locked ones. `private` is
+  the host's own toggle and is independent of the password. The realm marks every locked lobby
+  private, and the few private lobbies without a password are mostly junk or test games, so the
+  padlock is the only mark. If you ever count games per lobby (1 + its `rehost` events), skip a
+  rehost whose `game_created_time` equals the previous game's: before tracker 8d28d7e the realm
+  sometimes alternated one game between two ids. On `/wc3-lobbies`:
   - an eye beside the name when `observers` is `full`
   - "Melee" and "Blizzard map" tags in the Map column (both rare)
   - a Game filter (All / Custom / Melee), where "Custom" hides only known melee games

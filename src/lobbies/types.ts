@@ -34,6 +34,8 @@ export interface LobbyAdvert {
      * seen since its live window passed, with `last_seen` the last time it was listed).
      */
     state?: 'live' | 'ended' | 'lost';
+    /** Whether the lobby has a password: null where the tracker did not record it. */
+    locked?: boolean | null;
 }
 
 /** "ok", "stale" (no news from Battle.net for a while), "no_live_lobbies" or "db_unavailable". */

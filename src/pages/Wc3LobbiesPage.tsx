@@ -1,6 +1,7 @@
 import {FC, useEffect, useMemo, useState} from 'react';
 import styles from './Wc3Lobbies.module.scss';
 import ChipGroup, {ChipOption} from '../components/ChipGroup';
+import LockIcon from '../components/LockIcon';
 import {useLiveLobbies} from '../lobbies/hooks';
 import {ago, isOurs, mapNameOf, regionCode, splitHost} from '../lobbies/format';
 import {LobbySession} from '../lobbies/types';
@@ -9,6 +10,7 @@ const ALL = 'all';
 
 type Region = typeof ALL | 'eu' | 'usw' | 'kr';
 type Sort = 'newest' | 'players' | 'full';
+type Access = typeof ALL | 'open' | 'locked';
 
 const REGION_OPTIONS: ChipOption<Region>[] = [
     {value: ALL, label: 'All'},
@@ -16,6 +18,20 @@ const REGION_OPTIONS: ChipOption<Region>[] = [
     {value: 'usw', label: 'US'},
     {value: 'kr', label: 'KR'},
 ];
+
+// "Open only" leaves out the lobbies known to have a password; the tracker does not know for every
+// lobby, and one it does not know about is not hidden.
+const ACCESS_OPTIONS: ChipOption<Access>[] = [
+    {value: ALL, label: 'All'},
+    {value: 'open', label: 'Open only'},
+    {value: 'locked', label: 'Password-protected'},
+];
+
+const ACCESS_FILTERS: Record<Access, (locked: boolean | null | undefined) => boolean> = {
+    [ALL]: () => true,
+    open: (locked) => locked !== true,
+    locked: (locked) => locked === true,
+};
 
 const SORT_OPTIONS: ChipOption<Sort>[] = [
     {value: 'newest', label: 'Newest'},
@@ -50,7 +66,7 @@ const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
 
     return (
         <li className={ours ? styles.ourRow : styles.row}>
-            <span className={styles.name}>{advert.name}</span>
+            <span className={styles.name}>{advert.name}{advert.locked && <LockIcon/>}</span>
             <span className={styles.map}>{mapNameOf(advert)}</span>
             <span className={styles.host}>{host.name}<span className={styles.tag}>{host.tag}</span></span>
             <span className={styles.players}>
@@ -72,14 +88,16 @@ const Wc3LobbiesPage: FC = () => {
     const [query, setQuery] = useState('');
     const [region, setRegion] = useState<Region>(ALL);
     const [sort, setSort] = useState<Sort>('newest');
+    const [access, setAccess] = useState<Access>(ALL);
 
     const shown = useMemo(() => {
         const needle = query.trim().toLowerCase();
         return lobbies
             .filter(({advert}) => (region === ALL || advert.region === region)
+                && ACCESS_FILTERS[access](advert.locked)
                 && (!needle || [advert.name, mapNameOf(advert), advert.host].some((text) => (text ?? '').toLowerCase().includes(needle))))
             .sort((a, b) => Number(isOurs(b.advert)) - Number(isOurs(a.advert)) || SORTERS[sort](a, b));
-    }, [lobbies, query, region, sort]);
+    }, [lobbies, query, region, access, sort]);
 
     const waiting = shown.reduce((total, {advert}) => total + advert.final_players, 0);
     const secondsAgo = updatedAt === null ? null : Math.max(0, Math.round((now - updatedAt) / 1000));
@@ -114,6 +132,7 @@ const Wc3LobbiesPage: FC = () => {
                         aria-label="Search lobby, map or host"
                     />
                     <ChipGroup label="Region" options={REGION_OPTIONS} value={region} onChange={setRegion}/>
+                    <ChipGroup label="Access" options={ACCESS_OPTIONS} value={access} onChange={setAccess}/>
                     <ChipGroup label="Sort" options={SORT_OPTIONS} value={sort} onChange={setSort}/>
                 </div>
 

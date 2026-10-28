@@ -39,6 +39,19 @@ test('joins our map\'s live feed and shows its open lobbies, fullest first, at m
     expect(screen.getByRole('link', {name: /previously hosted lobbies/i})).toHaveAttribute('href', ROUTES.lobbyLog);
 });
 
+test('leaves out our lobbies that have a password, also when one takes a password while open', async () => {
+    await renderPanel();
+    const open = advert({name: 'Come on in', final_players: 2});
+    snapshot([open, advert({name: 'Private game', locked: true, final_players: 9})]);
+    expect(screen.getByText('Come on in')).toBeInTheDocument();
+    expect(screen.queryByText('Private game')).not.toBeInTheDocument();
+
+    const {final_players, ...fields} = open;
+    act(() => feedChannel().deliver('meta', {event: {instance_id: open.instance_id, ts: new Date().toISOString(), kind: 'meta'}, lobby: {...fields, locked: true}}));
+    expect(screen.queryByText('Come on in')).not.toBeInTheDocument();
+    expect(screen.getByText('No lobby is up right now')).toBeInTheDocument();
+});
+
 test('counts a lobby as open since its first advert, across re-lists', async () => {
     await renderPanel();
     snapshot([advert({first_seen: minutesAgo(1), session_first_seen: minutesAgo(25)})]);

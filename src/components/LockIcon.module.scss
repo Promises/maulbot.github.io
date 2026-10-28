@@ -1,0 +1,11 @@
+@use '../styles/tokens' as *;
+
+.lock {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.45em;
+  vertical-align: -0.05em;
+  color: $colour-gold-dim;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}

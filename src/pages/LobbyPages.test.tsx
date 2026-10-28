@@ -33,6 +33,12 @@ describe('lobby log', () => {
         expect(screen.getByText('2 lobbies')).toBeInTheDocument();
     });
 
+    it('marks a lobby that had a password', async () => {
+        mockTracker({history: [advert({name: 'Private game', locked: true, first_seen: minutesAgo(5)})]});
+        await renderPage(<LobbyLogPage/>);
+        expect(within(screen.getByText('Private game')).getByRole('img', {name: 'Password-protected'})).toBeInTheDocument();
+    });
+
     it('filters by version and region', async () => {
         mockTracker({history: [
             advert({name: 'New EU', first_seen: minutesAgo(5)}),
@@ -89,5 +95,24 @@ describe('every open lobby', () => {
         expect(screen.getAllByRole('listitem')).toHaveLength(1);
         expect(screen.getByText('1 lobbies · 7 players waiting')).toBeInTheDocument();
         expect(screen.getByText('12m')).toBeInTheDocument();
+    });
+
+    it('marks lobbies with a password and filters on it', async () => {
+        await renderPage(<Wc3LobbiesPage/>);
+        act(() => feedChannel().deliver('snapshot', {as_of: new Date().toISOString(), health: {status: 'ok'}, lobbies: [
+            advert({name: 'Locked one', locked: true}),
+            advert({name: 'Open one', locked: false}),
+            advert({name: 'Unknown one', locked: null}),
+        ]}));
+        const rowOf = (name: string) => screen.getByText(name).closest('li') as HTMLElement;
+        expect(within(rowOf('Locked one')).getByRole('img', {name: 'Password-protected'})).toBeInTheDocument();
+        expect(within(rowOf('Open one')).queryByRole('img')).not.toBeInTheDocument();
+        expect(within(rowOf('Unknown one')).queryByRole('img')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Open only'}));
+        expect(screen.getAllByRole('listitem').map((row) => row.firstChild?.textContent).sort()).toEqual(['Open one', 'Unknown one']);
+        fireEvent.click(screen.getByRole('button', {name: 'Password-protected'}));
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+        expect(screen.getByText('Locked one')).toBeInTheDocument();
     });
 });

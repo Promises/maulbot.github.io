@@ -88,6 +88,11 @@ API needs no auth and CORS is open.
   keeps the join panel's card from blinking out. For the history, `sessions.ts` joins rows by host,
   name, map file and region when one starts within 5 minutes of the last ending; tracker restarts
   leave gaps of a minute or two.
+- `locked` is true when a lobby has a password, false when it has none, and null when it isn't
+  known; rows from before the tracker sent it are null. Locked lobbies get a padlock on both
+  lobby pages. The join panel leaves our locked lobbies out, since a visitor can't join them, and
+  decides on each lobby as it stands. On `/wc3-lobbies`, "Open only" hides lobbies *known* to
+  have a password, so unknown ones stay.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions
   are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, because `created_time`
   is always null, so the log says "Closed" rather than guessing.

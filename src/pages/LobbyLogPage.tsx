@@ -1,6 +1,7 @@
 import {FC, useEffect, useMemo, useState} from 'react';
 import styles from './LobbyLog.module.scss';
 import ChipGroup, {ChipOption} from '../components/ChipGroup';
+import LockIcon from '../components/LockIcon';
 import {useLobbyLog} from '../lobbies/hooks';
 import {clock, dayLabel, regionName, span, splitHost, versionOf} from '../lobbies/format';
 import {isOpen} from '../lobbies/sessions';
@@ -41,7 +42,7 @@ const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
         <li className={styles.row}>
             <span className={styles.time}>{clock(lobby.openedAt)}</span>
             <div className={styles.what}>
-                <span className={styles.name}>{advert.name}</span>
+                <span className={styles.name}>{advert.name}{advert.locked && <LockIcon/>}</span>
                 <span className={styles.detail}>
                     {host.name}<span className={styles.tag}>{host.tag}</span> · {versionOf(advert)} · {regionName(advert.region)}
                 </span>

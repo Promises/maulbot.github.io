@@ -33,6 +33,14 @@ describe('lobby log', () => {
         expect(screen.getByText('2 lobbies')).toBeInTheDocument();
     });
 
+    it('calls a lobby that left the list closed, whatever its created_time', async () => {
+        mockTracker({history: [advert({name: 'Gone', first_seen: minutesAgo(30), ended_at: minutesAgo(20),
+            created_time: minutesAgo(31)})]});
+        await renderPage(<LobbyLogPage/>);
+        expect(within(screen.getByRole('listitem')).getByText('Closed')).toBeInTheDocument();
+        expect(screen.queryByText(/started/i)).not.toBeInTheDocument();
+    });
+
     it('marks a lobby that had a password', async () => {
         mockTracker({history: [advert({name: 'Private game', locked: true, first_seen: minutesAgo(5)})]});
         await renderPage(<LobbyLogPage/>);

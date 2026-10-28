@@ -39,11 +39,16 @@ test('joins our map\'s live feed and shows its open lobbies, fullest first, at m
     expect(screen.getByRole('link', {name: /previously hosted lobbies/i})).toHaveAttribute('href', ROUTES.lobbyLog);
 });
 
-test('leaves out our lobbies that have a password, also when one takes a password while open', async () => {
+test('leaves out our lobbies that have a password or are private, also when one takes a password while open', async () => {
     await renderPanel();
     const open = advert({name: 'Come on in', final_players: 2});
-    snapshot([open, advert({name: 'Private game', locked: true, final_players: 9})]);
+    snapshot([
+        open,
+        advert({name: 'Password game', locked: true, final_players: 9}),
+        advert({name: 'Private game', private: true, final_players: 8}),
+    ]);
     expect(screen.getByText('Come on in')).toBeInTheDocument();
+    expect(screen.queryByText('Password game')).not.toBeInTheDocument();
     expect(screen.queryByText('Private game')).not.toBeInTheDocument();
 
     const {final_players, ...fields} = open;

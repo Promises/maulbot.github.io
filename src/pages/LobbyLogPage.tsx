@@ -18,17 +18,14 @@ const REGION_OPTIONS: ChipOption<Region>[] = [
     {value: 'usw', label: 'US'},
 ];
 
-type Status = 'open' | 'started' | 'closed';
+type Status = 'open' | 'closed';
 
-const STATUS_LABELS: Record<Status, string> = {open: 'Open now', started: 'Started', closed: 'Closed'};
+const STATUS_LABELS: Record<Status, string> = {open: 'Open now', closed: 'Closed'};
 
-// Whether a game started is not visible in Battle.net's list, so a lobby that left it reads as
-// closed; one with a start time (none yet) reads as started.
+// Battle.net's list does not say whether a lobby that left it started its game or was disbanded,
+// so it reads as closed either way.
 function statusOf(lobby: LobbySession, now: number): Status {
-    if (isOpen(lobby, now)) {
-        return 'open';
-    }
-    return lobby.advert.created_time ? 'started' : 'closed';
+    return isOpen(lobby, now) ? 'open' : 'closed';
 }
 
 const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {

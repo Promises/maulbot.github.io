@@ -22,7 +22,7 @@ export interface LobbyAdvert {
     last_seen: string;
     /** Null while the advert is still listed. */
     ended_at: string | null;
-    /** When the game started. The tracker cannot see that yet, so this is always null for now. */
+    /** When the realm created the lobby, usually a little before `first_seen`. Not when its game started. */
     created_time: string | null;
     /**
      * On open lobbies: when the lobby's first advert was listed, across all its re-lists, as the
@@ -34,8 +34,20 @@ export interface LobbyAdvert {
      * seen since its live window passed, with `last_seen` the last time it was listed).
      */
     state?: 'live' | 'ended' | 'lost';
-    /** Whether the lobby has a password: null where the tracker did not record it. */
+    /** Whether the lobby has a password. */
     locked?: boolean | null;
+    // What the realm says about the lobby and its map. Like `locked`, each is null where the tracker
+    // did not record it, which old lobbies never will be.
+    /** Whether the lobby is private. */
+    private?: boolean | null;
+    game_type?: 'melee' | 'non-melee' | null;
+    /** An official Blizzard map or a custom one. */
+    map_source?: 'blizzard' | 'user' | null;
+    observers?: 'full' | 'off' | null;
+    map_size?: 'small' | 'medium' | 'large' | null;
+    map_crc?: number | null;
+    /** Names the exact map file whatever it is called, so it can tie renamed copies together. */
+    map_sha1?: string | null;
 }
 
 /** "ok", "stale" (no news from Battle.net for a while), "no_live_lobbies" or "db_unavailable". */

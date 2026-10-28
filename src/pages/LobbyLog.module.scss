@@ -196,11 +196,6 @@
   color: $colour-frost;
 }
 
-.started {
-  @extend %status;
-  color: $colour-started;
-}
-
 .closed {
   @extend %status;
   color: $colour-text-ghost;

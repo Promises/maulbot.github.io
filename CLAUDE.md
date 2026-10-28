@@ -94,8 +94,13 @@ API needs no auth and CORS is open.
   decides on each lobby as it stands. On `/wc3-lobbies`, "Open only" hides lobbies *known* to
   have a password, so unknown ones stay.
 - `final_players` is the current count while `ended_at` is null and includes the host. The regions
-  are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, because `created_time`
-  is always null, so the log says "Closed" rather than guessing.
+  are `eu`, `usw` and `kr`, or null. Whether a game started is not observable, so the log says
+  "Closed" rather than guessing. `created_time` is when the realm created the lobby, not a game
+  start; never read it as one.
+- Realm fields that are nullable forever: `private`, `game_type`, `map_source`, `observers`,
+  `map_size`, `map_crc` and `map_sha1`. Old lobbies never have them. The join panel leaves out
+  `private` lobbies, as it does locked ones. The rest aren't shown yet; add them once the tracker
+  sends real values.
 - Tests never connect: `src/__mocks__/phoenix.ts` stands in for the client, and `lobbies/testing.ts`
   drives it.
 

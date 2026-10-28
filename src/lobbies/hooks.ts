@@ -154,14 +154,14 @@ function useLiveFeed(topic: FeedTopic, keep: (advert: Pick<LobbyAdvert, 'map_nam
 const everyLobby = () => true;
 
 /**
- * Our map's open lobbies a visitor can join, the fullest first: those known to have a password are
- * left out. That is decided on the lobbies as they stand, since a lobby can take or drop a password
- * while it is open.
+ * Our map's open lobbies a visitor can join, the fullest first: those known to have a password or
+ * to be private are left out. That is decided on the lobbies as they stand, since a lobby can
+ * change either while it is open.
  */
 export function useOurLobbies(): LiveLobbiesState {
     const state = useLiveFeed('lobbies:our_map', isOurs);
     const lobbies = useMemo(() => state.lobbies
-        .filter((lobby) => lobby.advert.locked !== true)
+        .filter(({advert}) => advert.locked !== true && advert.private !== true)
         .sort((a, b) => b.players - a.players), [state.lobbies]);
     return {...state, lobbies};
 }

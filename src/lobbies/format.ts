@@ -17,6 +17,13 @@ export function isOurs(lobby: MapRef): boolean {
     return names.some((name) => OUR_MAP.test(name)) && !names.some((name) => UNOFFICIAL_COPY.test(name));
 }
 
+// .w3x and .w3m maps, and .w3z, which some realm lobbies list.
+const MAP_EXTENSION = /\.w3[xmz]$/i;
+
+// The player count melee maps carry in front of their name, "(6)Gnollwood": the lobby's slot
+// count says it already.
+const PLAYER_COUNT = /^\(\d+\)\s*/;
+
 // The map's name, or its file's; either can come with the map folder in front ("Maps/…"), which goes.
 function mapLabel(lobby: MapRef): string {
     return (lobby.map_name || lobby.map_file || '').split('/').pop() || '';
@@ -26,16 +33,19 @@ function mapLabel(lobby: MapRef): string {
 export function versionOf(lobby: MapRef): string {
     const label = mapLabel(lobby);
     const version = label
-        .replace(/\.w3[xm]$/i, '')
+        .replace(MAP_EXTENSION, '')
         .replace(/^warcraft[\s_]*maul[\s:_-]*reimagined/i, '')
         .replace(/[_-]+/g, ' ')
         .trim();
     return version || label;
 }
 
-/** The map's name as listed, or its file name when WC3 gave no name. */
+/**
+ * The map's name as listed, or its file's when WC3 gave no name, without its folder, extension or
+ * melee player count: "Maps/(6)gnollwood.w3m" reads "gnollwood".
+ */
 export function mapNameOf(lobby: MapRef): string {
-    return mapLabel(lobby).replace(/\.w3[xm]$/i, '');
+    return mapLabel(lobby).replace(MAP_EXTENSION, '').replace(PLAYER_COUNT, '');
 }
 
 const REGION_NAMES: Record<string, string> = {eu: 'Europe', usw: 'Americas', kr: 'Asia'};

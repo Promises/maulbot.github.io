@@ -98,9 +98,14 @@ API needs no auth and CORS is open.
   "Closed" rather than guessing. `created_time` is when the realm created the lobby, not a game
   start; never read it as one.
 - Realm fields that are nullable forever: `private`, `game_type`, `map_source`, `observers`,
-  `map_size`, `map_crc` and `map_sha1`. Old lobbies never have them. The join panel leaves out
-  `private` lobbies, as it does locked ones. The rest aren't shown yet; add them once the tracker
-  sends real values.
+  `map_size`, `map_crc` and `map_sha1`. Old lobbies never have them; live ones have since
+  2026-10-28. The join panel leaves out `private` lobbies, as it does locked ones. In practice
+  every private lobby is locked, so there is no separate private mark. On `/wc3-lobbies`:
+  - an eye beside the name when `observers` is `full`
+  - "Melee" and "Blizzard map" tags in the Map column (both rare)
+  - a Game filter (All / Custom / Melee), where "Custom" hides only known melee games
+  `map_size`, `map_crc` and `map_sha1` aren't shown. Don't show `created_time` as lobby age: it
+  disagrees with `first_seen` by minutes to hours on some lobbies, and wc3-re-3 is looking into it.
 - Tests never connect: `src/__mocks__/phoenix.ts` stands in for the client, and `lobbies/testing.ts`
   drives it.
 

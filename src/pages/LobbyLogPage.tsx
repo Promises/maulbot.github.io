@@ -1,7 +1,7 @@
 import {FC, useEffect, useMemo, useState} from 'react';
 import styles from './LobbyLog.module.scss';
 import ChipGroup, {ChipOption} from '../components/ChipGroup';
-import LockIcon from '../components/LockIcon';
+import {LockIcon} from '../components/LobbyIcons';
 import {useLobbyLog} from '../lobbies/hooks';
 import {clock, dayLabel, regionName, span, splitHost, versionOf} from '../lobbies/format';
 import {isOpen} from '../lobbies/sessions';

@@ -17,8 +17,9 @@ export function isOurs(lobby: MapRef): boolean {
     return names.some((name) => OUR_MAP.test(name)) && !names.some((name) => UNOFFICIAL_COPY.test(name));
 }
 
+// The map's name, or its file's; either can come with the map folder in front ("Maps/…"), which goes.
 function mapLabel(lobby: MapRef): string {
-    return lobby.map_name || (lobby.map_file ?? '').split('/').pop() || '';
+    return (lobby.map_name || lobby.map_file || '').split('/').pop() || '';
 }
 
 /** The map's version, e.g. "Beta11 5.0.0", from its name with our map's title taken off. */

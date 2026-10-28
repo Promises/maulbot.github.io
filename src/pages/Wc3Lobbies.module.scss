@@ -166,6 +166,18 @@ $table-narrow: 820px;
   }
 }
 
+// "Melee", "Blizzard map": the exceptions among mostly custom games.
+.mapTag {
+  @include label(9.5px, 0.14em);
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 5px;
+  vertical-align: 0.1em;
+  border: 1px solid rgba(200, 165, 90, 0.35);
+  color: $colour-gold-dim;
+  white-space: nowrap;
+}
+
 .host {
   font-size: 14px;
   color: $colour-text-note;

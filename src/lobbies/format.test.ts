@@ -38,6 +38,7 @@ describe('versionOf', () => {
 test('mapNameOf drops the extension and falls back to the file name', () => {
     expect(mapNameOf(map('Legion TD Mega 4.6'))).toBe('Legion TD Mega 4.6');
     expect(mapNameOf(map(null, 'Maps/Download/Island Defense 3.1.2.w3x'))).toBe('Island Defense 3.1.2');
+    expect(mapNameOf(map('Maps/(2)a_starter_map_losttemple_lv.w3x'))).toBe('(2)a_starter_map_losttemple_lv');
 });
 
 test('regions read as names and codes, US west as the Americas', () => {

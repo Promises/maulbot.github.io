@@ -105,6 +105,29 @@ describe('every open lobby', () => {
         expect(screen.getByText('12m')).toBeInTheDocument();
     });
 
+    it('marks melee games, Blizzard maps and lobbies that take observers, and filters on the game', async () => {
+        await renderPage(<Wc3LobbiesPage/>);
+        act(() => feedChannel().deliver('snapshot', {as_of: new Date().toISOString(), health: {status: 'ok'}, lobbies: [
+            advert({name: '1v1 ladder', map_name: '(2)Lost Temple', map_file: 'Maps/(2)LostTemple.w3x',
+                game_type: 'melee', map_source: 'blizzard', observers: 'full'}),
+            advert({name: 'Legion', map_name: 'Legion TD', map_file: 'Maps/Legion TD.w3x', game_type: 'non-melee',
+                map_source: 'user', observers: 'off'}),
+            advert({name: 'Unrecorded', map_name: 'Old map', map_file: 'Maps/Old map.w3x'}),
+        ]}));
+        const rowOf = (name: string) => screen.getByText(name).closest('li') as HTMLElement;
+        const ladder = rowOf('1v1 ladder');
+        expect(within(ladder).getByText('Melee')).toBeInTheDocument();
+        expect(within(ladder).getByText('Blizzard map')).toBeInTheDocument();
+        expect(within(ladder).getByRole('img', {name: 'Observers allowed'})).toBeInTheDocument();
+        expect(within(rowOf('Legion')).queryByText('Melee')).not.toBeInTheDocument();
+        expect(within(rowOf('Legion')).queryByRole('img')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Melee'}));
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+        fireEvent.click(screen.getByRole('button', {name: 'Custom'}));
+        expect(screen.getAllByRole('listitem').map((row) => row.firstChild?.textContent).sort()).toEqual(['Legion', 'Unrecorded']);
+    });
+
     it('marks lobbies with a password and filters on it', async () => {
         await renderPage(<Wc3LobbiesPage/>);
         act(() => feedChannel().deliver('snapshot', {as_of: new Date().toISOString(), health: {status: 'ok'}, lobbies: [

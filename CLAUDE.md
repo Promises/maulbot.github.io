@@ -92,7 +92,9 @@ API needs no auth and CORS is open.
   name, map file and region when one starts within 5 minutes of the last ending; tracker restarts
   leave gaps of a minute or two.
 - `locked` is true when a lobby has a password, false when it has none, and null when it isn't
-  known; rows from before the tracker sent it are null. Locked lobbies get a padlock on both
+  known; rows from before the tracker sent it are null. Locked lobbies also carry their `password`.
+  By the operator's decision (2026-10-29), it is shown on the hidden `/wc3-lobbies` page only,
+  beside the padlock. Never show it on the homepage or `/lobbies`; tests check that the log doesn't. Locked lobbies get a padlock on both
   lobby pages. The join panel leaves our locked lobbies out, since a visitor can't join them, and
   decides on each lobby as it stands. On `/wc3-lobbies`, "Open only" hides lobbies *known* to
   have a password, so unknown ones stay.

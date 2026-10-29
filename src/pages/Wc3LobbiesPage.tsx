@@ -84,6 +84,7 @@ const LobbyRow: FC<{lobby: LobbySession; now: number}> = ({lobby, now}) => {
             <span className={styles.name}>
                 {advert.name}
                 {advert.locked && <LockIcon/>}
+                {advert.locked && advert.password && <span className={styles.password}>{advert.password}</span>}
                 {advert.observers === 'full' && <ObserversIcon/>}
             </span>
             <span className={styles.map}>

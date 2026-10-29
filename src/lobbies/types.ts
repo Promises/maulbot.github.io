@@ -36,6 +36,11 @@ export interface LobbyAdvert {
     state?: 'live' | 'ended' | 'lost';
     /** Whether the lobby has a password. */
     locked?: boolean | null;
+    /**
+     * A locked lobby's password. Shown on the hidden /wc3-lobbies page only, by the operator's
+     * decision (2026-10-29); the public pages never show it.
+     */
+    password?: string | null;
     // What the realm says about the lobby and its map. Like `locked`, each is null where the tracker
     // did not record it, which old lobbies never will be.
     /** Whether the lobby is private. */

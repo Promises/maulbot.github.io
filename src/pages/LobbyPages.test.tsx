@@ -41,10 +41,11 @@ describe('lobby log', () => {
         expect(screen.queryByText(/started/i)).not.toBeInTheDocument();
     });
 
-    it('marks a lobby that had a password', async () => {
-        mockTracker({history: [advert({name: 'Private game', locked: true, first_seen: minutesAgo(5)})]});
+    it('marks a lobby that had a password, and never shows the password', async () => {
+        mockTracker({history: [advert({name: 'Private game', locked: true, password: 'hunter2', first_seen: minutesAgo(5)})]});
         await renderPage(<LobbyLogPage/>);
         expect(within(screen.getByText('Private game')).getByRole('img', {name: 'Password-protected'})).toBeInTheDocument();
+        expect(screen.queryByText(/hunter2/)).not.toBeInTheDocument();
     });
 
     it('filters by version and region', async () => {
@@ -131,12 +132,13 @@ describe('every open lobby', () => {
     it('marks lobbies with a password and filters on it', async () => {
         await renderPage(<Wc3LobbiesPage/>);
         act(() => feedChannel().deliver('snapshot', {as_of: new Date().toISOString(), health: {status: 'ok'}, lobbies: [
-            advert({name: 'Locked one', locked: true}),
+            advert({name: 'Locked one', locked: true, password: 'letmein'}),
             advert({name: 'Open one', locked: false}),
             advert({name: 'Unknown one', locked: null}),
         ]}));
         const rowOf = (name: string) => screen.getByText(name).closest('li') as HTMLElement;
         expect(within(rowOf('Locked one')).getByRole('img', {name: 'Password-protected'})).toBeInTheDocument();
+        expect(within(rowOf('Locked one')).getByText('letmein')).toBeInTheDocument();
         expect(within(rowOf('Open one')).queryByRole('img')).not.toBeInTheDocument();
         expect(within(rowOf('Unknown one')).queryByRole('img')).not.toBeInTheDocument();
 

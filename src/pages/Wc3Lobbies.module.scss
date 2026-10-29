@@ -166,6 +166,19 @@ $table-narrow: 820px;
   }
 }
 
+// A locked lobby's password, after its padlock: plain text, so it can be selected and copied.
+.password {
+  margin-left: 6px;
+  padding: 0 5px;
+  font-family: $font-body;
+  font-weight: 400;
+  font-size: 13.5px;
+  color: $colour-gold;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
+  user-select: all;
+}
+
 // "Melee", "Blizzard map": the exceptions among mostly custom games.
 .mapTag {
   @include label(9.5px, 0.14em);
